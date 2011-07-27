@@ -1,0 +1,21 @@
+Name:           equation-solver
+Version:        0.1
+Cabal-Version:  >= 1.6
+License:        BSD3
+License-File:   LICENSE
+Author:         Aleksey Khudyakov <alexey.skladnoy@gmail.com>
+Maintainer:     Aleksey Khudyakov <alexey.skladnoy@gmail.com>
+Homepage:       
+Category:       Math
+Build-Type:     Simple
+Synopsis:       
+  
+Description: Vectors with a fixed length
+
+source-repository head
+  type:     hg
+  location: https://bitbucket.org/Shimuuar/equation-solver
+
+Library
+  Build-Depends:   base >=3 && <5
+  Exposed-modules: Numeric.Equation.Solver
