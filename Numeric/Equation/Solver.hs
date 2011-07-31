@@ -2,6 +2,7 @@ module Numeric.Equation.Solver (
     solveBisection
   ) where
 
+-- | Solve equation @f(x) = 0@ using bisection method
 solveBisection :: Double             -- ^ Required precision
                -> (Double,Double)    -- ^ Range
                -> (Double -> Double) -- ^ Equation
@@ -22,3 +23,4 @@ bisectionWorker eps f a b fa fb
   where
     c  = 0.5 * (a + b)
     fc = f c
+
