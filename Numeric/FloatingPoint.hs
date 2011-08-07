@@ -1,5 +1,6 @@
 -- | Constants related to floating point numbers 
 module Numeric.FloatingPoint ( 
+    FloatingPoint(..)
   ) where
 
 
