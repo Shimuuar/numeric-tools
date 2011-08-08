@@ -34,3 +34,7 @@ instance FloatingPoint Double where
 --   posInfty   =   1  / 0
 --   negInfty   = (-1) / 0
 --   nan        = 0 / 0
+
+-- NOTE!
+--  There is package ieee754 which provide exactly same functionality
+--  I should switch to it
