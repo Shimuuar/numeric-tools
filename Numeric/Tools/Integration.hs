@@ -8,6 +8,11 @@ module Numeric.Tool.Integration (
   , quadSimpson
   ) where
 
+import Control.Monad.ST
+
+import qualified Data.Vector.Unboxed         as U
+import qualified Data.Vector.Unboxed.Mutable as M
+
 import Debug.Trace
 import Numeric.Utils
 
@@ -60,7 +65,43 @@ quadSimpson (a,b) param f = worker 1 0 (trapGuess a b f)
         st' = nextTrapezoid a b n f st
         s'  = (4*st' - st) / 3
 
--- FIXME: Romberg integration
+-- | Integration using Romberg rule
+quadRomberg :: (Double, Double)   -- ^ Integration limit
+            -> QuadParam          -- ^ Precision
+            -> (Double -> Double) -- ^ Function to integrate
+            -> Maybe Double
+quadRomberg (a,b) (QuadParam eps nMax) f =
+  runST $ do 
+    arr <- M.new nMax
+    -- Calculate new approximation
+    let nextAppr n i s
+          | i >= n    = M.write arr n s >> return s
+          | otherwise = do
+              x <- M.read arr i
+              let s' = s + (s - x) / fromIntegral (4^(i+1) - 1)
+              id 
+               $ trace ("  " ++ show s ++ "  |  " ++ show x)
+               $ return ()
+              M.write arr i s
+              nextAppr n (i+1) s'
+    -- Maine loop
+    let worker i st s
+          | i >= nMax = return Nothing
+          | otherwise = do
+              let st' = nextTrapezoid a b (2^(i-1)) f st
+              M.write arr 0 st
+              s' <- nextAppr i 0 st'
+              id 
+                $ traceShow s'
+                $ return ()
+              if i > 5 && abs (s' - s) < eps * abs s
+                then return $ Just s'
+                else worker (i+1) st' s'
+    -- Calculate integral
+    let st0 = trapGuess a b f
+    worker 1 st0 st0
+
+
 
 ----------------------------------------------------------------
 -- Helpers
