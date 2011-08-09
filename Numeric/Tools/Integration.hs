@@ -123,7 +123,7 @@ nextTrapezoid a b n f q = 0.5 * (q + sep * s)
   where
     sep = (b - a) / fromIntegral n            -- Separation between points
     x0  = a + 0.5 * sep                       -- Starting point
-    s   = sum' $ map f $ generate n (+sep) x0 -- Sum of all points
+    s   = U.sum $ U.map f $ U.iterateN n (+sep) x0  -- Sum of all points
 
 
 blamg :: Double -> Double
