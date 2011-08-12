@@ -1,29 +1,28 @@
+{-# LANGUAGE TypeFamilies #-}
 module Numeric.Tools.Mesh (
     -- * Meshes
     Mesh(..)
-  , validMeshIndex
-  , (<!)
     -- ** Uniform mesh
   , UniformMesh
   , uniformMesh
   , uniformMeshStep
   ) where
 
+import Numeric.Classes.Indexing
+
+
+
 ----------------------------------------------------------------
 -- Type class
 ----------------------------------------------------------------
 
 -- | Class for one dimensional meshes. Mesh is ordered set of points.
-class Mesh a where
-  -- | Number of points in the mesh
-  meshSize       :: a -> Int
+class Indexable a => Mesh a where
   -- | Low bound of mesh
   meshLowerBound :: a -> Double
   -- | Upper bound of mesh 
   meshUpperBound :: a -> Double
   
-  -- | Retrieve coordinate of point. No check are performed
-  unsafeIndexMesh :: a -> Int -> Double
   -- | Find such index for value that 
   -- 
   -- > mesh <! i <= x && mesh <! i+1 > x
@@ -31,17 +30,6 @@ class Mesh a where
   -- Will return invalid index if value is out of range.
   meshFindIndex :: a -> Double -> Int
 
--- | Check that index is valid
-validMeshIndex :: Mesh a => a -> Int -> Bool 
-validMeshIndex mesh i = i >= 0 && i < meshSize mesh
-{-# INLINE validMeshIndex #-}
-
--- | Return point coordinate for mesh. Will throw exception if index
---   is out of bounds
-(<!) :: Mesh a => a -> Int -> Double
-mesh <! i 
-  | i < 0 || i >= meshSize mesh = error "Numeric.Tool.Interpolation.Mesh: invalid index"
-  | otherwise                   = unsafeIndexMesh mesh i
 
 
 
@@ -65,10 +53,13 @@ uniformMesh a b n
   | n <  2    = error "Numeric.Tool.Interpolation.Mesh.uniformMesh: too few nodes"
   | otherwise = UniformMesh a ((b - a) / fromIntegral (n - 1)) n
 
-instance Mesh UniformMesh where
-  meshSize            = uniformMeshSize
-  meshLowerBound      = uniformMeshFrom
-  meshUpperBound (UniformMesh a da n) = a + da * fromIntegral (n - 1)
 
-  unsafeIndexMesh (UniformMesh a da n) i = a + fromIntegral i * da
-  meshFindIndex   (UniformMesh a da n) x = truncate $ (x - a) / da
+instance Indexable UniformMesh where
+  type IndexVal UniformMesh = Double
+  size                               = uniformMeshSize  
+  unsafeIndex (UniformMesh a da n) i = a + fromIntegral i * da
+
+instance Mesh UniformMesh where
+  meshLowerBound                        = uniformMeshFrom
+  meshUpperBound (UniformMesh a da n)   = a + da * fromIntegral (n - 1)
+  meshFindIndex  (UniformMesh a da n) x = truncate $ (x - a) / da
