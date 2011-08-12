@@ -1,6 +1,7 @@
 {-# LANGUAGE TypeFamilies #-}
 module Numeric.Classes.Indexing (
     Indexable(..)
+  , validIndex
   ) where
 
 import qualified Data.Vector          as V 
@@ -20,6 +21,11 @@ class Indexable a where
   (!)         :: a -> Int -> IndexVal a
   x ! i | i < 0 || i > size x = error "Numeric.Classes.Indexing.!: index is out of range"
         | otherwise           = unsafeIndex x i
+
+-- | Check that index is valid
+validIndex :: Indexable a => a -> Int -> Bool 
+validIndex tbl i = i >= 0 && i < size tbl
+{-# INLINE validIndex #-}
 
 instance Indexable (V.Vector a) where
   type IndexVal (V.Vector a) = a
