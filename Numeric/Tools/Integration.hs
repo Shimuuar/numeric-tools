@@ -1,5 +1,5 @@
 {-# LANGUAGE BangPatterns #-}
-module Numeric.Tool.Integration (
+module Numeric.Tools.Integration (
     -- * Integration parameters
     QuadParam(..)
   , defQuad
@@ -14,7 +14,6 @@ import qualified Data.Vector.Unboxed         as U
 import qualified Data.Vector.Unboxed.Mutable as M
 
 import Debug.Trace
-import Numeric.Utils
 
 ----------------------------------------------------------------
 -- Trapezoid and Simpson integration
