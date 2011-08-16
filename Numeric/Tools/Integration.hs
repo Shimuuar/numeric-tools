@@ -4,7 +4,7 @@ module Numeric.Tools.Integration (
     QuadParam(..)
   , defQuad
     -- * Integration functions
-  , quadTrapeziod
+  , quadTrapezoid
   , quadSimpson
   ) where
 
@@ -34,11 +34,11 @@ defQuad =  QuadParam { quadPrecision = 1e-9
 
 -- | Trapezoidal integration. Returns 'Nothing' if integral fails to
 --   converge
-quadTrapeziod :: (Double, Double)   -- ^ Integration limit
+quadTrapezoid :: (Double, Double)   -- ^ Integration limit
               -> QuadParam          -- ^ Precision
               -> (Double -> Double) -- ^ Function to integrate
               -> Maybe Double
-quadTrapeziod (a,b) param f = worker 1 (trapGuess a b f)
+quadTrapezoid (a,b) param f = worker 1 (trapGuess a b f)
   where
     eps = quadPrecision param
     worker n q
