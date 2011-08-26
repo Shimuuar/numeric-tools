@@ -1,4 +1,15 @@
 {-# LANGUAGE BangPatterns #-}
+-- |
+-- Module    : Numeric.Tools.Integration
+-- Copyright : (c) 2011 Aleksey Khudyakov
+-- License   : BSD3
+--
+-- Maintainer  : Aleksey Khudyakov <alexey.skladnoy@gmail.com>
+-- Stability   : experimental
+-- Portability : portable
+--
+-- Funtions for numerical instegration.
+--
 module Numeric.Tools.Integration (
     -- * Integration parameters
     QuadParam(..)
@@ -6,6 +17,7 @@ module Numeric.Tools.Integration (
     -- * Integration functions
   , quadTrapezoid
   , quadSimpson
+  , quadRomberg
   ) where
 
 import Control.Monad.ST
@@ -31,6 +43,8 @@ defQuad :: QuadParam
 defQuad =  QuadParam { quadPrecision = 1e-9
                      , quadMaxIter   = 20
                      }
+
+----------------------------------------------------------------
 
 -- | Trapezoidal integration. Returns 'Nothing' if integral fails to
 --   converge
