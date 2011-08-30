@@ -42,6 +42,7 @@ data UniformMesh = UniformMesh { uniformMeshFrom :: Double
                                , uniformMeshStep :: Double
                                , uniformMeshSize :: Int
                                }
+                   deriving (Eq,Show)
 
 -- | Create uniform mesh 
 uniformMesh :: Double           -- ^ Lower bound
