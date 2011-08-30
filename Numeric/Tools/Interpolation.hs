@@ -34,10 +34,17 @@ class Interpolation a where
   -- | Tabulate function
   tabulateFun :: (IndexVal m ~ Double, Mesh m) => m -> (Double -> Double) -> a m
   -- | Use table of already evaluated function and mesh. Sizes of mesh
-  --   and table must coincide
-  tabulate    :: (IndexVal m ~ Double, Mesh m, G.Vector v Double) => m -> v Double -> a m
+  --   and table must coincide but it's not checked. Do not use this
+  --   function use 'tabulate' instead.
+  unsafeTabulate :: (IndexVal m ~ Double, Mesh m, G.Vector v Double) => m -> v Double -> a m
 
-
+-- | Use table of already evaluated function and mesh. Sizes of mesh
+--   and table must coincide. 
+tabulate :: (Interpolation a, IndexVal m ~ Double, Mesh m, G.Vector v Double) => m -> v Double -> a m
+tabulate mesh tbl
+  | size mesh /= G.length tbl = error "Numeric.Tools.Interpolation.tabulate: size of vector and mesh do not match"
+  | otherwise                 = unsafeTabulate mesh tbl
+{-# INLINE tabulate #-}
 
 ----------------------------------------------------------------
 -- Linear interpolation
@@ -60,10 +67,8 @@ instance Mesh a => Indexable (LinearInterp a) where
 
 instance Interpolation LinearInterp where
   at = linearInterpolation
-  tabulate mesh tbl
-    | size mesh /= G.length tbl = error "Numeric.Tools.Interpolation.LinearInterp.tabulate: size of vector and mesh do not match"
-    | otherwise                 = LinearInterp mesh (G.convert tbl)
-  tabulateFun mesh f = LinearInterp mesh (U.generate (size mesh) (f . unsafeIndex mesh))
+  tabulateFun    mesh f   = LinearInterp mesh (U.generate (size mesh) (f . unsafeIndex mesh))
+  unsafeTabulate mesh tbl = LinearInterp mesh (G.convert tbl)
 
 linearInterpolation :: (Mesh a, IndexVal a ~ Double) => LinearInterp a -> Double -> Double
 linearInterpolation tbl@(LinearInterp mesh _) x = a + (x - xa) / (xb - xa) * (b - a)
@@ -110,8 +115,8 @@ instance Interpolation CubicSpline where
     y  = a * ya + b * yb 
        + ((a*a*a - a) * da + (b*b*b - b) * db) * (h * h) / 6
   ------
-  tabulateFun mesh f   = makeCubicSpline mesh (U.generate (size mesh) (f . unsafeIndex mesh))
-  tabulate    mesh tbl = makeCubicSpline mesh (G.convert tbl)
+  tabulateFun    mesh f   = makeCubicSpline mesh (U.generate (size mesh) (f . unsafeIndex mesh))
+  unsafeTabulate mesh tbl = makeCubicSpline mesh (G.convert tbl)
       
 
 -- These are natural cubic splines
