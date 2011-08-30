@@ -18,7 +18,8 @@ source-repository head
 
 Library
   Build-Depends:   base >=3 && <5
-  Exposed-modules: Numeric.Equation.Solver
+  Exposed-modules: Control.Monad.Numeric
+                   Numeric.Equation.Solver
                    Numeric.Tools.Differentiation
                    Numeric.Tools.Integration
                    Numeric.Tools.Interpolation

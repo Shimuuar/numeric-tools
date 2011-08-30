@@ -18,6 +18,7 @@ import qualified Data.Vector.Generic         as G
 import qualified Data.Vector.Unboxed         as U
 import qualified Data.Vector.Unboxed.Mutable as M
 
+import Control.Monad.Numeric
 import Numeric.Classes.Indexing
 import Numeric.Tools.Mesh
 
@@ -157,21 +158,3 @@ delta :: (Num (IndexVal a), Indexable a) => a -> Int -> IndexVal a
 delta tbl i = (tbl ! i) - (tbl ! (i - 1))
 {-# INLINE delta #-}
 
-for :: Monad m => Int -> Int -> (Int -> m ()) -> m ()
-for i maxI a = worker i
-  where
-    worker j | j < maxI  = a j >> worker (j+1)
-             | otherwise = return ()
-{-# INLINE for #-}
-
--- | Generic for
-forGen :: Monad m 
-       => Int                   -- ^ Staring index value
-       -> (Int -> Bool)         -- ^ Condition
-       -> (Int -> Int)          -- ^ Function to modify index
-       -> (Int -> m ())         -- ^ Action to perform
-       -> m ()
-forGen n test next a = worker n
-  where
-    worker i | test i    = a i >> worker (next i)
-             | otherwise = return ()
