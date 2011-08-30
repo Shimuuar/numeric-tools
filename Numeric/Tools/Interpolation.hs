@@ -123,26 +123,24 @@ makeCubicSpline xs ys = runST $ do
   M.write y2 0 0.0
   M.write u  0 0.0
   -- Forward pass
-  let fwd i | i >= n-1  = return ()
-            | otherwise = do let sig = delta xs i / delta xs (i+1)
-                             -- Y2
-                             yVal <- M.read y2 (i-1)
-                             let p   = sig * yVal + 2
-                             M.write y2 i $ (sig - 1) / p
-                             -- U
-                             uVal <- M.read u  (i-1)
-                             let u' = delta ys (i+1) / delta xs (i+1)  - delta ys i / delta xs i
-                             M.write u i $ (6 * u' / (xs ! (i+1) - xs ! (i-1)) - sig * uVal) / p
-                             fwd (i+1)
-  fwd 1
+  for 1 (n-1) $ \i -> do
+    do let sig = delta xs i / delta xs (i+1)
+       -- Y2
+       yVal <- M.read y2 (i-1)
+       let p   = sig * yVal + 2
+       M.write y2 i $ (sig - 1) / p
+       -- U
+       uVal <- M.read u  (i-1)
+       let u' = delta ys (i+1) / delta xs (i+1)  - delta ys i / delta xs i
+       M.write u i $ (6 * u' / (xs ! (i+1) - xs ! (i-1)) - sig * uVal) / p
   -- Backward pass
   M.write y2 (n-1) 0.0
-  let back i | i < 0     = return ()
-             | otherwise = do uVal  <- M.read u   i
-                              yVal  <- M.read y2  i
-                              yVal1 <- M.read y2 (i+1)
-                              M.write y2 i $ yVal * yVal1 + uVal
-  back (n-2)
+  forGen (n-2) (>= 0) pred $ \i -> do
+    do uVal  <- M.read u   i
+       yVal  <- M.read y2  i
+       yVal1 <- M.read y2 (i+1)
+       M.write y2 i $ yVal * yVal1 + uVal
+  -- Done
   y2' <- G.unsafeFreeze y2
   return (CubicSpline xs ys y2')
 
@@ -154,7 +152,21 @@ delta :: (Num (IndexVal a), Indexable a) => a -> Int -> IndexVal a
 delta tbl i = (tbl ! i) - (tbl ! (i - 1))
 {-# INLINE delta #-}
 
-testSpline = let xs  = [0,0.01 .. 3]
-                 spl = tabulateFun (uniformMesh 0 3 10) sin :: CubicSpline UniformMesh
-                 q   = zip xs (map (at spl) xs)
-             in writeFile "asdf" $ unlines $ map (\(x,y) -> show x ++ " " ++ show y) q    
+for :: Monad m => Int -> Int -> (Int -> m ()) -> m ()
+for i maxI a = worker i
+  where
+    worker j | j < maxI  = a j >> worker (j+1)
+             | otherwise = return ()
+{-# INLINE for #-}
+
+-- | Generic for
+forGen :: Monad m 
+       => Int                   -- ^ Staring index value
+       -> (Int -> Bool)         -- ^ Condition
+       -> (Int -> Int)          -- ^ Function to modify index
+       -> (Int -> m ())         -- ^ Action to perform
+       -> m ()
+forGen n test next a = worker n
+  where
+    worker i | test i    = a i >> worker (next i)
+             | otherwise = return ()
