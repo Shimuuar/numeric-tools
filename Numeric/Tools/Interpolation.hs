@@ -21,6 +21,8 @@ import qualified Data.Vector.Unboxed.Mutable as M
 import Numeric.Classes.Indexing
 import Numeric.Tools.Mesh
 
+
+
 ----------------------------------------------------------------
 
 -- | Interpolation for arbitraty meshes
@@ -95,18 +97,19 @@ instance Interpolation CubicSpline where
        | i > n     = n
        | otherwise = i
     -- Table lookup
-    xa = unsafeIndex mesh  i
-    xb = unsafeIndex mesh (i+1)
-    ya = unsafeIndex ys    i
-    yb = unsafeIndex ys   (i+1)
-    da = unsafeIndex y2    i
-    db = unsafeIndex y2   (i+1)
+    xa = unsafeIndex mesh  i'
+    xb = unsafeIndex mesh (i'+1)
+    ya = unsafeIndex ys    i'
+    yb = unsafeIndex ys   (i'+1)
+    da = unsafeIndex y2    i'
+    db = unsafeIndex y2   (i'+1)
     -- 
     h  = xb - xa
     a  = (xb - x ) / h
     b  = (x  - xa) / h
     y  = a * ya + b * yb 
-       + ((a*a*a + a) * db + (b*b*b + b) * da) * h * h / 6
+       + ((a*a*a - a) * da + (b*b*b - b) * db) * (h * h) / 6
+  ------
   tabulateFun mesh f   = makeCubicSpline mesh (U.generate (size mesh) (f . unsafeIndex mesh))
   tabulate    mesh tbl = makeCubicSpline mesh (G.convert tbl)
       
