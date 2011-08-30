@@ -4,15 +4,19 @@
 module Numeric.Tools.Interpolation (
     -- * Type class
     Interpolation(..)
-    -- * Data types
+    -- * Linear interpolation
   , LinearInterp
   , linearInterpMesh
   , linearInterpTable
+    -- * Cubic splines
   ) where
 
-import Data.Data (Data,Typeable)
-import qualified Data.Vector.Unboxed as U
-import qualified Data.Vector.Generic as G
+import Control.Monad.ST   (runST)
+import Data.Data          (Data,Typeable)
+
+import qualified Data.Vector.Generic         as G
+import qualified Data.Vector.Unboxed         as U
+import qualified Data.Vector.Unboxed.Mutable as M
 
 import Numeric.Classes.Indexing
 import Numeric.Tools.Mesh
@@ -31,6 +35,10 @@ class Interpolation a where
   --   and table must coincide
   tabulate    :: (IndexVal m ~ Double, Mesh m, G.Vector v Double) => m -> v Double -> a m
 
+
+
+----------------------------------------------------------------
+-- Linear interpolation
 ----------------------------------------------------------------
 
 -- | Data for linear interpolation
@@ -65,3 +73,85 @@ linearInterpolation tbl@(LinearInterp mesh _) x = a + (x - xa) / (xb - xa) * (b 
        | otherwise = i
     (xa,a) = unsafeIndex tbl  i
     (xb,b) = unsafeIndex tbl (i+1)
+
+
+
+----------------------------------------------------------------
+-- Cubic splines
+----------------------------------------------------------------
+
+data CubicSpline a = CubicSpline { cubicSplineMesh   :: a
+                                   , cubicSplineTable  :: U.Vector Double
+                                   , cubicSplineY2     :: U.Vector Double
+                                   }
+                      deriving (Eq,Show,Data,Typeable)
+
+instance Interpolation CubicSpline where
+  at (CubicSpline mesh ys y2) x = y
+    where
+    n  = size mesh - 2
+    i  = meshFindIndex mesh x
+    i' | i < 0     = 0
+       | i > n     = n
+       | otherwise = i
+    -- Table lookup
+    xa = unsafeIndex mesh  i
+    xb = unsafeIndex mesh (i+1)
+    ya = unsafeIndex ys    i
+    yb = unsafeIndex ys   (i+1)
+    da = unsafeIndex y2    i
+    db = unsafeIndex y2   (i+1)
+    -- 
+    h  = xb - xa
+    a  = (xb - x ) / h
+    b  = (x  - xa) / h
+    y  = a * ya + b * yb 
+       + ((a*a*a + a) * db + (b*b*b + b) * da) * h * h / 6
+  tabulateFun mesh f   = makeCubicSpline mesh (U.generate (size mesh) (f . unsafeIndex mesh))
+  tabulate    mesh tbl = makeCubicSpline mesh (G.convert tbl)
+      
+
+-- These are natural cubic splines
+makeCubicSpline :: (IndexVal a ~ Double, Mesh a) => a -> U.Vector Double -> CubicSpline a
+makeCubicSpline xs ys = runST $ do
+  let n = size ys
+  y2 <- M.new n
+  u  <- M.new n
+  M.write y2 0 0.0
+  M.write u  0 0.0
+  -- Forward pass
+  let fwd i | i >= n-1  = return ()
+            | otherwise = do let sig = delta xs i / delta xs (i+1)
+                             -- Y2
+                             yVal <- M.read y2 (i-1)
+                             let p   = sig * yVal + 2
+                             M.write y2 i $ (sig - 1) / p
+                             -- U
+                             uVal <- M.read u  (i-1)
+                             let u' = delta ys (i+1) / delta xs (i+1)  - delta ys i / delta xs i
+                             M.write u i $ (6 * u' / (xs ! (i+1) - xs ! (i-1)) - sig * uVal) / p
+                             fwd (i+1)
+  fwd 1
+  -- Backward pass
+  M.write y2 (n-1) 0.0
+  let back i | i < 0     = return ()
+             | otherwise = do uVal  <- M.read u   i
+                              yVal  <- M.read y2  i
+                              yVal1 <- M.read y2 (i+1)
+                              M.write y2 i $ yVal * yVal1 + uVal
+  back (n-2)
+  y2' <- G.unsafeFreeze y2
+  return (CubicSpline xs ys y2')
+
+
+----------------------------------------------------------------
+-- Helpers
+
+delta :: (Num (IndexVal a), Indexable a) => a -> Int -> IndexVal a
+delta tbl i = (tbl ! i) - (tbl ! (i - 1))
+{-# INLINE delta #-}
+
+testSpline = let xs  = [0,0.01 .. 3]
+                 spl = tabulateFun (uniformMesh 0 3 10) sin :: CubicSpline UniformMesh
+                 q   = zip xs (map (at spl) xs)
+             in writeFile "asdf" $ unlines $ map (\(x,y) -> show x ++ " " ++ show y) q    
