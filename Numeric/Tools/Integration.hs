@@ -76,34 +76,38 @@ data QuadRes = QuadRes { quadRes     :: Maybe Double -- ^ Integraion result
 quadTrapezoid :: QuadParam          -- ^ Precision
               -> (Double, Double)   -- ^ Integration limit
               -> (Double -> Double) -- ^ Function to integrate
-              -> Maybe Double
-quadTrapezoid param (a,b) f = worker 1 (trapGuess a b f)
+              -> QuadRes
+quadTrapezoid param (a,b) f = worker 1 1 (trapGuess a b f)
   where
     eps  = quadPrecision param  -- Requred precision
-    maxN = 2 ^ maxIter param    -- Maximum allowed number of points for evaluation
-    worker n q
-      | n > maxN                              = Nothing 
-      | n > 2^5 && abs (q' - q) < eps * abs q = Just q'
-      | otherwise                             = worker (n*2) q'
+    maxN = maxIter param        -- Maximum allowed number of iterations
+    worker n nPoints q
+      | n > 5 && d < eps = ret (Just q')
+      | n >= maxN        = ret Nothing 
+      | otherwise        = worker (n+1) (nPoints*2) q'
       where
-        q' = nextTrapezoid a b n f q
+        q'  = nextTrapezoid a b nPoints f q -- New approximation
+        d   = abs (q' - q) / abs q          -- Precision estimate
+        ret = \x -> QuadRes x d n
 
 -- | Simpson rule
 quadSimpson :: QuadParam          -- ^ Precision
             -> (Double, Double)   -- ^ Integration limit
             -> (Double -> Double) -- ^ Function to integrate
-            -> Maybe Double
-quadSimpson param (a,b) f = worker 1 0 (trapGuess a b f)
+            -> QuadRes
+quadSimpson param (a,b) f = worker 1 1  0 (trapGuess a b f)
   where
     eps  = quadPrecision param  -- Requred precision
-    maxN = 2 ^ maxIter param    -- Maximum allowed number of points for evaluation
-    worker n s st 
-      | n > maxN                              = Nothing
-      | n > 2^5 && abs (s' - s) < eps * abs s = Just s'
-      | otherwise                             = worker (n*2) s' st'
+    maxN = maxIter param        -- Maximum allowed number of points for evaluation
+    worker n nPoints s st 
+      | n > 5 && d < eps = ret (Just s')
+      | n >= maxN        = ret Nothing
+      | otherwise        = worker (n+1) (nPoints*2) s' st'
       where
-        st' = nextTrapezoid a b n f st
+        st' = nextTrapezoid a b nPoints f st
         s'  = (4*st' - st) / 3
+        d   = abs (s' - s) / abs s
+        ret = \x -> QuadRes x d n
 
 -- | Integration using Romberg rule
 quadRomberg :: QuadParam          -- ^ Precision
