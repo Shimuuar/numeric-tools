@@ -1,7 +1,9 @@
+{-# LANGUAGE ForeignFunctionInterface #-}
 module Numeric.Tools.Differentiation (
     diffSimple
   , diffSimmetric
-  -- , diffRichardson
+  , diffRichardson
+    -- * Utils
   , representableDelta 
   ) where
 
@@ -9,6 +11,8 @@ import Control.Monad.ST (runST)
 import Control.Monad.Primitive
 import qualified Data.Vector.Unboxed         as U
 import qualified Data.Vector.Unboxed.Mutable as M
+import Foreign
+import Foreign.C
 
 import Numeric.FloatingPoint
 
@@ -97,5 +101,8 @@ replace arr i x = do
 representableDelta :: Double    -- ^ x
                    -> Double    -- ^ small delta
                    -> Double 
-representableDelta x h = let temp = x + h in temp - x
--- FIXME: It's wrong. I'm sure
+representableDelta x h = realToFrac $ unsafePerformIO $ representableDeltaFFI (realToFrac x) (realToFrac h)
+{-# INLINE representableDelta #-}
+
+foreign import ccall "numeric_tools_representable_delta" 
+  representableDeltaFFI :: CDouble -> CDouble -> IO CDouble

@@ -22,7 +22,10 @@ Library
                    vector
   Exposed-modules: Control.Monad.Numeric
                    Numeric.Equation.Solver
+                   Numeric.Classes.Indexing
                    Numeric.Tools.Differentiation
                    Numeric.Tools.Integration
                    Numeric.Tools.Interpolation
                    Numeric.Tools.Mesh
+                   Numeric.FloatingPoint
+  c-sources:       cbits/ieee.c
