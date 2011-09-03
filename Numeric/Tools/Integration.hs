@@ -48,11 +48,11 @@ defQuad =  QuadParam { quadPrecision = 1e-9
 
 -- | Trapezoidal integration. Returns 'Nothing' if integral fails to
 --   converge
-quadTrapezoid :: (Double, Double)   -- ^ Integration limit
-              -> QuadParam          -- ^ Precision
+quadTrapezoid :: QuadParam          -- ^ Precision
+              -> (Double, Double)   -- ^ Integration limit
               -> (Double -> Double) -- ^ Function to integrate
               -> Maybe Double
-quadTrapezoid (a,b) param f = worker 1 (trapGuess a b f)
+quadTrapezoid param (a,b) f = worker 1 (trapGuess a b f)
   where
     eps = quadPrecision param
     worker n q
@@ -63,11 +63,11 @@ quadTrapezoid (a,b) param f = worker 1 (trapGuess a b f)
         q' = nextTrapezoid a b n f q
 
 -- | Simpson rule
-quadSimpson :: (Double, Double)   -- ^ Integration limit
-            -> QuadParam          -- ^ Precision
+quadSimpson :: QuadParam          -- ^ Precision
+            -> (Double, Double)   -- ^ Integration limit
             -> (Double -> Double) -- ^ Function to integrate
             -> Maybe Double
-quadSimpson (a,b) param f = worker 1 0 (trapGuess a b f)
+quadSimpson param (a,b) f = worker 1 0 (trapGuess a b f)
   where
     eps = quadPrecision param
     worker n s st 
@@ -79,11 +79,11 @@ quadSimpson (a,b) param f = worker 1 0 (trapGuess a b f)
         s'  = (4*st' - st) / 3
 
 -- | Integration using Romberg rule
-quadRomberg :: (Double, Double)   -- ^ Integration limit
-            -> QuadParam          -- ^ Precision
+quadRomberg :: QuadParam          -- ^ Precision
+            -> (Double, Double)   -- ^ Integration limit
             -> (Double -> Double) -- ^ Function to integrate
             -> Maybe Double
-quadRomberg (a,b) (QuadParam eps nMax) f =
+quadRomberg (QuadParam eps nMax) (a,b) f =
   runST $ do 
     arr <- M.new nMax
     -- Calculate new approximation
