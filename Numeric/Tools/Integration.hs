@@ -85,8 +85,8 @@ quadTrapezoid param (a,b) f = worker 1 1 (trapGuess a b f)
       | n >= maxN        = ret Nothing 
       | otherwise        = worker (n+1) (nPoints*2) q'
       where
-        q'  = nextTrapezoid a b nPoints f q -- New approximation
-        d   = abs (q' - q) / abs q          -- Precision estimate
+        q' = nextTrapezoid a b nPoints f q -- New approximation
+        d  = abs (q' - q) / abs q          -- Precision estimate
         ret = \x -> QuadRes x d n
 
 -- | Integration using Simpson rule.
@@ -146,7 +146,7 @@ quadRomberg param (a,b) f =
 
 -- Initial guess for trapezoid rule
 trapGuess :: Double -> Double -> (Double -> Double) -> Double
-trapGuess a b f = 0.5 * (b - a) * (f b + f a)
+trapGuess !a !b f = 0.5 * (b - a) * (f b + f a)
 
 
 -- Refinement of guess using trapeziod algorithms
@@ -156,7 +156,7 @@ nextTrapezoid :: Double             -- Lower integration limit
               -> (Double -> Double) -- Function to integrate
               -> Double             -- Approximation
               -> Double
-nextTrapezoid a b n f q = 0.5 * (q + sep * s)
+nextTrapezoid !a !b !n f !q = 0.5 * (q + sep * s)
   where
     sep = (b - a) / fromIntegral n                  -- Separation between points
     x0  = a + 0.5 * sep                             -- Starting point
