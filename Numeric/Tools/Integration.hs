@@ -120,23 +120,20 @@ quadRomberg param (a,b) f =
         maxN = maxIter       param
     arr <- M.new maxN
     -- Calculate new approximation
-    let nextAppr n i s
-          | i >= n    = M.write arr n s >> return s
-          | otherwise = do
-              x <- M.read arr i
-              let s' = s + (s - x) / fromIntegral (4^(i+1) - 1)
-              id 
-               $ trace ("  " ++ show s ++ "  |  " ++ show x)
-               $ return ()
-              M.write arr i s
-              nextAppr n (i+1) s'
+    let nextAppr n s = runNextAppr 0 4 s where
+          runNextAppr i fac s = do
+            x <- M.read arr i
+            M.write arr i s
+            if i >= n
+              then return s
+              else runNextAppr (i+1) (fac*4) $ s + (s - x) / (fac - 1)
     -- Maine loop
     let worker i st s
           | i >= maxN = return (QuadRes Nothing 0 i)
           | otherwise = do
               let st' = nextTrapezoid a b (2^(i-1)) f st
               M.write arr 0 st
-              s' <- nextAppr i 0 st'
+              s' <- nextAppr i st'
               id 
                 $ traceShow s'
                 $ return ()
