@@ -113,7 +113,7 @@ quadSimpson param (a,b) f = worker 1 1  0 (trapGuess a b f)
 quadRomberg :: QuadParam          -- ^ Precision
             -> (Double, Double)   -- ^ Integration limit
             -> (Double -> Double) -- ^ Function to integrate
-            -> Maybe Double
+            -> QuadRes
 quadRomberg param (a,b) f =
   runST $ do 
     let eps  = quadPrecision param
@@ -132,7 +132,7 @@ quadRomberg param (a,b) f =
               nextAppr n (i+1) s'
     -- Maine loop
     let worker i st s
-          | i >= maxN = return Nothing
+          | i >= maxN = return (QuadRes Nothing 0 i)
           | otherwise = do
               let st' = nextTrapezoid a b (2^(i-1)) f st
               M.write arr 0 st
@@ -141,7 +141,7 @@ quadRomberg param (a,b) f =
                 $ traceShow s'
                 $ return ()
               if i > 5 && abs (s' - s) < eps * abs s
-                then return $ Just s'
+                then return $ QuadRes (Just s') 0 i
                 else worker (i+1) st' s'
     -- Calculate integral
     let st0 = trapGuess a b f
