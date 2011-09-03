@@ -14,6 +14,7 @@ module Numeric.Tools.Integration (
     -- * Integration parameters
     QuadParam(..)
   , defQuad
+  , QuadRes(..)
     -- * Integration functions
   , quadTrapezoid
   , quadSimpson
@@ -27,8 +28,10 @@ import qualified Data.Vector.Unboxed.Mutable as M
 
 import Debug.Trace
 
+
+
 ----------------------------------------------------------------
--- Trapezoid and Simpson integration
+-- Data types
 ----------------------------------------------------------------
 
 -- | Integration parameters for numerical routines. Note that each
@@ -55,6 +58,17 @@ defQuad =  QuadParam { quadPrecision = 1e-9
                      , quadMaxIter   = 20
                      }
 
+-- | Result of numeric integration
+data QuadRes = QuadRes { quadRes     :: Maybe Double -- ^ Integraion result
+                       , quadPrecEst :: Double       -- ^ Rough estimate of attained precision
+                       , quadNIter   :: Int          -- ^ Number of iterations
+                       }
+               deriving (Show,Eq)
+
+
+
+----------------------------------------------------------------
+-- Different integration methods
 ----------------------------------------------------------------
 
 -- | Trapezoidal integration. Returns 'Nothing' if integral fails to
