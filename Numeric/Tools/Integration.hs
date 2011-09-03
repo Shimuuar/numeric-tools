@@ -65,9 +65,10 @@ quadTrapezoid :: QuadParam          -- ^ Precision
               -> Maybe Double
 quadTrapezoid param (a,b) f = worker 1 (trapGuess a b f)
   where
-    eps = quadPrecision param
+    eps  = quadPrecision param  -- Requred precision
+    maxN = 2 ^ maxIter param    -- Maximum allowed number of points for evaluation
     worker n q
-      | n > quadMaxIter param                 = Nothing 
+      | n > maxN                              = Nothing 
       | n > 2^5 && abs (q' - q) < eps * abs q = Just q'
       | otherwise                             = worker (n*2) q'
       where
@@ -80,9 +81,10 @@ quadSimpson :: QuadParam          -- ^ Precision
             -> Maybe Double
 quadSimpson param (a,b) f = worker 1 0 (trapGuess a b f)
   where
-    eps = quadPrecision param
+    eps  = quadPrecision param  -- Requred precision
+    maxN = 2 ^ maxIter param    -- Maximum allowed number of points for evaluation
     worker n s st 
-      | n > quadMaxIter param                 = Nothing
+      | n > maxN                              = Nothing
       | n > 2^5 && abs (s' - s) < eps * abs s = Just s'
       | otherwise                             = worker (n*2) s' st'
       where
