@@ -26,8 +26,6 @@ import Control.Monad.ST
 import qualified Data.Vector.Unboxed         as U
 import qualified Data.Vector.Unboxed.Mutable as M
 
-import Debug.Trace
-
 
 
 ----------------------------------------------------------------
@@ -36,10 +34,10 @@ import Debug.Trace
 
 -- | Integration parameters for numerical routines. Note that each
 -- additional iteration doubles number of function evaluation required
--- to compute integral. 
+-- to compute integral.
 --
 -- Number of iterations is capped at 30.
-data QuadParam = QuadParam { 
+data QuadParam = QuadParam {
     quadPrecision :: Double -- ^ Relative precision of answer
   , quadMaxIter   :: Int    -- ^ Maximum number of iterations
   }
@@ -82,7 +80,7 @@ quadTrapezoid param (a,b) f = worker 1 1 (trapGuess a b f)
     maxN = maxIter param        -- Maximum allowed number of iterations
     worker n nPoints q
       | n > 5 && d < eps = ret (Just q')
-      | n >= maxN        = ret Nothing 
+      | n >= maxN        = ret Nothing
       | otherwise        = worker (n+1) (nPoints*2) q'
       where
         q' = nextTrapezoid a b nPoints f q -- New approximation
@@ -98,7 +96,7 @@ quadSimpson param (a,b) f = worker 1 1  0 (trapGuess a b f)
   where
     eps  = quadPrecision param  -- Requred precision
     maxN = maxIter param        -- Maximum allowed number of points for evaluation
-    worker n nPoints s st 
+    worker n nPoints s st
       | n > 5 && d < eps = ret (Just s')
       | n >= maxN        = ret Nothing
       | otherwise        = worker (n+1) (nPoints*2) s' st'
@@ -114,12 +112,12 @@ quadRomberg :: QuadParam          -- ^ Precision
             -> (Double -> Double) -- ^ Function to integrate
             -> QuadRes
 quadRomberg param (a,b) f =
-  runST $ do 
+  runST $ do
     let eps  = quadPrecision param
         maxN = maxIter       param
     arr <- M.new maxN
     -- Calculate new approximation
-    let nextAppr n s = runNextAppr 0 4 s where
+    let nextAppr n s0 = runNextAppr 0 4 s0 where
           runNextAppr i fac s = do
             x <- M.read arr i
             M.write arr i s
@@ -131,7 +129,7 @@ quadRomberg param (a,b) f =
           let st' = nextTrapezoid a b nPoints f st
           s' <- M.write arr 0 st >> nextAppr n st'
           let d = abs (s' - s) / abs s
-          case () of 
+          case () of
             _ | n > 5 && d < eps -> return $ QuadRes (Just s') d n
               | n >= maxN        -> return $ QuadRes Nothing   d n
               | otherwise        -> worker (n+1) (nPoints*2) st' s'
