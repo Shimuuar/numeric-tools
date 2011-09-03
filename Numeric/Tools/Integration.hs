@@ -114,9 +114,11 @@ quadRomberg :: QuadParam          -- ^ Precision
             -> (Double, Double)   -- ^ Integration limit
             -> (Double -> Double) -- ^ Function to integrate
             -> Maybe Double
-quadRomberg (QuadParam eps nMax) (a,b) f =
+quadRomberg param (a,b) f =
   runST $ do 
-    arr <- M.new nMax
+    let eps  = quadPrecision param
+        maxN = maxIter       param
+    arr <- M.new maxN
     -- Calculate new approximation
     let nextAppr n i s
           | i >= n    = M.write arr n s >> return s
@@ -130,7 +132,7 @@ quadRomberg (QuadParam eps nMax) (a,b) f =
               nextAppr n (i+1) s'
     -- Maine loop
     let worker i st s
-          | i >= nMax = return Nothing
+          | i >= maxN = return Nothing
           | otherwise = do
               let st' = nextTrapezoid a b (2^(i-1)) f st
               M.write arr 0 st
