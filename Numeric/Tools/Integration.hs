@@ -128,21 +128,16 @@ quadRomberg param (a,b) f =
               then return s
               else runNextAppr (i+1) (fac*4) $ s + (s - x) / (fac - 1)
     -- Maine loop
-    let worker i st s
-          | i >= maxN = return (QuadRes Nothing 0 i)
-          | otherwise = do
-              let st' = nextTrapezoid a b (2^(i-1)) f st
-              M.write arr 0 st
-              s' <- nextAppr i st'
-              id 
-                $ traceShow s'
-                $ return ()
-              if i > 5 && abs (s' - s) < eps * abs s
-                then return $ QuadRes (Just s') 0 i
-                else worker (i+1) st' s'
+    let worker n nPoints st s = do
+          let st' = nextTrapezoid a b nPoints f st
+          s' <- M.write arr 0 st >> nextAppr n st'
+          let d = abs (s' - s) / abs s
+          case () of 
+            _ | n > 5 && d < eps -> return $ QuadRes (Just s') d n
+              | n >= maxN        -> return $ QuadRes Nothing   d n
+              | otherwise        -> worker (n+1) (nPoints*2) st' s'
     -- Calculate integral
-    let st0 = trapGuess a b f
-    worker 1 st0 st0
+    worker 1 1 st0 st0 where  st0 = trapGuess a b f
 
 
 
