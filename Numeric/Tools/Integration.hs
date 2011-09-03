@@ -71,8 +71,7 @@ data QuadRes = QuadRes { quadRes     :: Maybe Double -- ^ Integraion result
 -- Different integration methods
 ----------------------------------------------------------------
 
--- | Trapezoidal integration. Returns 'Nothing' if integral fails to
---   converge
+-- | Integration of using trapezoids.
 quadTrapezoid :: QuadParam          -- ^ Precision
               -> (Double, Double)   -- ^ Integration limit
               -> (Double -> Double) -- ^ Function to integrate
@@ -90,7 +89,7 @@ quadTrapezoid param (a,b) f = worker 1 1 (trapGuess a b f)
         d   = abs (q' - q) / abs q          -- Precision estimate
         ret = \x -> QuadRes x d n
 
--- | Simpson rule
+-- | Integration using Simpson rule.
 quadSimpson :: QuadParam          -- ^ Precision
             -> (Double, Double)   -- ^ Integration limit
             -> (Double -> Double) -- ^ Function to integrate
@@ -109,7 +108,7 @@ quadSimpson param (a,b) f = worker 1 1  0 (trapGuess a b f)
         d   = abs (s' - s) / abs s
         ret = \x -> QuadRes x d n
 
--- | Integration using Romberg rule
+-- | Integration using Romberg rule.
 quadRomberg :: QuadParam          -- ^ Precision
             -> (Double, Double)   -- ^ Integration limit
             -> (Double -> Double) -- ^ Function to integrate
@@ -162,7 +161,3 @@ nextTrapezoid a b n f q = 0.5 * (q + sep * s)
     sep = (b - a) / fromIntegral n                  -- Separation between points
     x0  = a + 0.5 * sep                             -- Starting point
     s   = U.sum $ U.map f $ U.iterateN n (+sep) x0  -- Sum of all points
-
-
-blamg :: Double -> Double
-blamg x = x^4 * log(x + sqrt (x*x + 1))
