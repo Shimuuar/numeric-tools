@@ -31,14 +31,25 @@ import Debug.Trace
 -- Trapezoid and Simpson integration
 ----------------------------------------------------------------
 
--- | Integration parameters for numerical routines
+-- | Integration parameters for numerical routines. Note that each
+-- additional iteration doubles number of function evaluation required
+-- to compute integral. 
+--
+-- Number of iterations is capped at 30.
 data QuadParam = QuadParam { 
     quadPrecision :: Double -- ^ Relative precision of answer
   , quadMaxIter   :: Int    -- ^ Maximum number of iterations
   }
   deriving (Show,Eq)
 
+-- Number of iterations limited to 30
+maxIter :: QuadParam -> Int
+maxIter = max 30 . quadMaxIter
+
 -- | Default parameters for integration functions
+--
+-- * Maximum number of iterations = 20
+-- * Precision is 1e-9
 defQuad :: QuadParam
 defQuad =  QuadParam { quadPrecision = 1e-9
                      , quadMaxIter   = 20
@@ -134,8 +145,8 @@ nextTrapezoid :: Double             -- Lower integration limit
               -> Double
 nextTrapezoid a b n f q = 0.5 * (q + sep * s)
   where
-    sep = (b - a) / fromIntegral n            -- Separation between points
-    x0  = a + 0.5 * sep                       -- Starting point
+    sep = (b - a) / fromIntegral n                  -- Separation between points
+    x0  = a + 0.5 * sep                             -- Starting point
     s   = U.sum $ U.map f $ U.iterateN n (+sep) x0  -- Sum of all points
 
 
