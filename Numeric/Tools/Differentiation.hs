@@ -1,4 +1,4 @@
-module Numeric.Tool.Differentiation (
+module Numeric.Tools.Differentiation (
     diffSimple
   , diffSimmetric
   -- , diffRichardson
