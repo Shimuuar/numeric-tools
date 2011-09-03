@@ -47,7 +47,7 @@ data QuadParam = QuadParam {
 
 -- Number of iterations limited to 30
 maxIter :: QuadParam -> Int
-maxIter = max 30 . quadMaxIter
+maxIter = min 30 . quadMaxIter
 
 -- | Default parameters for integration functions
 --
