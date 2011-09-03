@@ -20,8 +20,8 @@ import Debug.Trace
 import Text.Printf
 
 -- | Simplest form of differentiation. Should be used only when
---   function evaluation is prohibitively expensive and value at point
---   @x@ should be reused.
+--   function evaluation is prohibitively expensive and already
+--   computed value at point @x@ should be reused.
 --
 --   > f'(x) = f(x+h) - f(x) / h
 diffSimple :: (Double -> Double) -- ^ Function to differentiate
@@ -32,7 +32,7 @@ diffSimple f h (x,fx) = (f (x + h') - fx) / h' where h' = representableDelta x h
 {-# INLINE diffSimple #-}                                                     
 
 
--- | Simple differentiation. It uses simple rule and provide
+-- | Simple differentiation. It uses simmetric rule and provide
 --   reasonable accuracy. It's suitable when function evaluation is
 --   expensive and precision could be traded for speed.
 --
