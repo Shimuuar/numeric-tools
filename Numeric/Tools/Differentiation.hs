@@ -6,12 +6,14 @@ module Numeric.Tool.Differentiation (
   ) where
 
 import Control.Monad.ST (runST)
+import Control.Monad.Primitive
 import qualified Data.Vector.Unboxed         as U
 import qualified Data.Vector.Unboxed.Mutable as M
 
 import Numeric.FloatingPoint
 
-
+import Debug.Trace
+import Text.Printf
 
 -- | Simplest form of differentiation. Should be used only when
 --   function evaluation is prohibitively expensive and value at point
@@ -45,40 +47,36 @@ diffRichardson :: (Double -> Double) -- ^ Function
                -> Double             -- ^ Point at which evaluate differential
                -> Double
 diffRichardson f h x = runST $ do
-  let nMax = 10
-  let con  = 1.4
-      con2 = con*con
-  let safe = 2 
+  let nMax = 10                 -- Maximum number of iterations
+  let con  = 1.4                -- Decrement for step size
+      con2 = con*con            -- Square of decrement
+  let safe = 2
+  -- Start calculations
   arr <- M.new nMax
-  -- Initial approximation
-  let d0 = (f (x + h) - f (x - h)) / (2*h)
-  M.write arr 0 d0
-  -- -- 
-  let worker i hh err ans 
-        | i == nMax = return ans
-        | otherwise = do
-            let richard j fac x err' ans'
-                  | j > i     = do
-                      M.write arr (j-1) x
-                      return (ans',err')
-                  | otherwise = do
-                      xOld <- M.read arr (j-1)
-                      M.write arr (j-1) x
-                      let x'   = (x*fac - xOld) / (fac - 1)
-                          errt = max (abs $ x' - x) (abs $ x' - xOld)
-                      if errt < err' 
-                        then richard (j+1) (fac * con2) x' errt x'
-                        else richard (j+1) (fac * con2) x' err' ans
-            -- 
-            let hh' = hh / con
-                d   = (f (x + hh') - f (x - hh')) / (2 * hh')
-            (ans',err') <- richard 1 con2 d err ans
-            x'  <- M.read arr i
-            x'' <- M.read arr i
-            if( abs (x' - x'') >= safe * err' )
-              then return ans'
-              else worker (i+1) hh' err' ans'
-  -- 
+  let worker i hh err ans = do
+        -- Calculate extrapolations
+        let richard j fac x err' ans' = do
+              xOld <- replace arr (j-1) x
+              case () of
+                _| j > i     -> return (ans',err')
+                 | otherwise -> 
+                   let x'   = (x*fac - xOld) / (fac - 1)           -- New extrapolation
+                       errt = max (abs $ x' - x) (abs $ x' - xOld) -- New error estimate
+                       (ans'',err'') = if errt < err' then (x'   , errt)
+                                                      else (ans' , err')
+                   in richard (j+1) (fac*con2) x' err'' ans''
+        -- Main loop
+        let hh' = hh / con                                -- New step size
+            d   = (f (x + hh') - f (x - hh')) / (2 * hh') -- New approximation
+        x'  <- M.read arr (i-1)
+        (ans',err') <- richard 1 con2 d err ans
+        x'' <- M.read arr i
+        case () of
+          _| abs (x' - x'') >= safe * err' -> return ans'
+           | i >= nMax - 1                 -> return ans'
+           | otherwise                     -> worker (i+1) hh' err' ans'
+  -- Calculate
+  M.write arr 0 $ (f (x + h) - f (x - h)) / (2*h)
   worker 1 h posInfty nan
 
 
@@ -86,6 +84,13 @@ diffRichardson f h x = runST $ do
       
 ----------------------------------------------------------------
 
+-- replace :: (PrimMonad m, M.MVector v a) => v (PrimState m) a -> Int -> a -> m a
+replace arr i x = do
+  x' <- M.read arr i
+  M.write arr i x
+  return x'
+{-# INLINE replace #-}
+  
 
 -- | For number @x@ and small @h@ return such @h'@ that @x+h'@ and @x@
 -- differ by representable number
