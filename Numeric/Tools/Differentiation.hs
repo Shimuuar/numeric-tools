@@ -1,6 +1,7 @@
 {-# LANGUAGE ForeignFunctionInterface #-}
 module Numeric.Tools.Differentiation (
-    diffSimple
+    DiffRes(..)
+  , diffSimple
   , diffSimmetric
   , diffRichardson
     -- * Utils
@@ -8,16 +9,19 @@ module Numeric.Tools.Differentiation (
   ) where
 
 import Control.Monad.ST (runST)
-import Control.Monad.Primitive
-import qualified Data.Vector.Unboxed         as U
 import qualified Data.Vector.Unboxed.Mutable as M
 import Foreign
 import Foreign.C
 
 import Numeric.FloatingPoint
 
-import Debug.Trace
-import Text.Printf
+
+
+data DiffRes = DiffRes { diffRest      :: Double -- ^ Derivative value
+                       , diffPrecision :: Double -- ^ Error estimate
+                       }
+               deriving (Show,Eq)
+
 
 -- | Simplest form of differentiation. Should be used only when
 --   function evaluation is prohibitively expensive and already
@@ -49,8 +53,8 @@ diffSimmetric f h x = (f(x + h') - f(x - h')) / (2 * h')
 diffRichardson :: (Double -> Double) -- ^ Function
                -> Double             -- ^ Delta
                -> Double             -- ^ Point at which evaluate differential
-               -> Double
-diffRichardson f h x = runST $ do
+               -> DiffRes
+diffRichardson f h x0 = runST $ do
   let nMax = 10                 -- Maximum number of iterations
   let con  = 1.4                -- Decrement for step size
       con2 = con*con            -- Square of decrement
@@ -71,16 +75,16 @@ diffRichardson f h x = runST $ do
                    in richard (j+1) (fac*con2) x' err'' ans''
         -- Main loop
         let hh' = hh / con                                -- New step size
-            d   = (f (x + hh') - f (x - hh')) / (2 * hh') -- New approximation
+            d   = (f (x0 + hh') - f (x0 - hh')) / (2 * hh') -- New approximation
         x'  <- M.read arr (i-1)
         (ans',err') <- richard 1 con2 d err ans
         x'' <- M.read arr i
         case () of
-          _| abs (x' - x'') >= safe * err' -> return ans'
-           | i >= nMax - 1                 -> return ans'
+          _| abs (x' - x'') >= safe * err' -> return $ DiffRes ans' err'
+           | i >= nMax - 1                 -> return $ DiffRes ans' err'
            | otherwise                     -> worker (i+1) hh' err' ans'
   -- Calculate
-  M.write arr 0 $ (f (x + h) - f (x - h)) / (2*h)
+  M.write arr 0 $ (f (x0 + h) - f (x0 - h)) / (2*h)
   worker 1 h posInfty nan
 
 
