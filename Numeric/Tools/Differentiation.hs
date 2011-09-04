@@ -17,7 +17,7 @@ import Numeric.FloatingPoint
 
 
 
-data DiffRes = DiffRes { diffRest      :: Double -- ^ Derivative value
+data DiffRes = DiffRes { diffRes       :: Double -- ^ Derivative value
                        , diffPrecision :: Double -- ^ Error estimate
                        }
                deriving (Show,Eq)
