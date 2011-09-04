@@ -3,6 +3,7 @@ import Test.HUnit
 import Text.Printf
 
 import Numeric.Tools.Integration
+import Numeric.Tools.Differentiation
 
 -- Approximate equality
 eq :: Double -> Double -> Double -> Bool
@@ -10,8 +11,8 @@ eq eps a b = abs (a - b) / min (abs a) (abs b) <= eps
 
 
 ----------------------------------------------------------------
--- Tests
-
+-- Integration
+----------------------------------------------------------------
 
 -- Functions together with indefinite integral and list of ranges
 type FunctionInt = ( Double -> Double  -- Function
@@ -25,8 +26,8 @@ integratorTest :: String
                -> (QuadParam -> (Double,Double) -> (Double -> Double) -> QuadRes)
                -> QuadParam
                -> FunctionInt
-               -> Test
-integratorTest name quad param (f,f',ranges,fname) = TestList
+               -> [Test]
+integratorTest name quad param (f,f',ranges,fname) =
   [ case quadRes $ quad param (a,b) f of
       Nothing   -> TestCase $ assertFailure (printf "%s: convergence for %s failed (%f,%f)" name fname a b)
       Just appr -> 
@@ -38,11 +39,11 @@ integratorTest name quad param (f,f',ranges,fname) = TestList
   ]
 
 
-testIntegrators :: [Test]
-testIntegrators = concat 
-  [ integratorTest "Trapeze" quadTrapezoid defQuad `map` [funBlamg,funExp,funLog]
-  , integratorTest "Simpson" quadSimpson   defQuad `map` [funBlamg,funExp,funLog]
-  , integratorTest "Romberg" quadRomberg   defQuad `map` [funBlamg,funExp,funLog]
+testIntegration :: [Test]
+testIntegration = concat 
+  [ integratorTest "Trapeze" quadTrapezoid defQuad =<< [funBlamg,funExp,funLog]
+  , integratorTest "Simpson" quadSimpson   defQuad =<< [funBlamg,funExp,funLog]
+  , integratorTest "Romberg" quadRomberg   defQuad =<< [funBlamg,funExp,funLog]
   ]
   where
     funBlamg = ( \x -> x^4 * log(x + sqrt (x*x + 1))
@@ -59,3 +60,55 @@ testIntegrators = concat
                , [(1,2), (0.3,3)]
                , "log"
                )
+
+
+
+----------------------------------------------------------------
+--
+----------------------------------------------------------------
+
+type FunctionDiff = ( Double -> Double  -- Function
+                    , Double -> Double  -- Derivative
+                    , [(Double,Double)] -- Points and delta to evaluate
+                    , String            -- Name
+                    )
+
+differentiationTest :: String
+                    -> ((Double -> Double) -> Double -> Double -> DiffRes)
+                    -> FunctionDiff
+                    -> [Test]
+differentiationTest name diff (f,f',xs,fname) = 
+  [ let DiffRes appr err = diff f h x
+        exact            = f' x
+    in TestCase $ 
+         assertBool
+         (printf "%s: poor precision for %s, got %g instead of %g" name fname appr exact)
+         (eq 1e-13 appr exact)
+  | (x,h) <- xs
+  ]
+
+testDifferentiation :: [Test]
+testDifferentiation = concat
+  [ differentiationTest "richardson" diffRichardson =<< [funSqr,funExp,funLog]
+  ]
+  where
+    funSqr = ( \x -> x*x
+             , \x -> 2*x
+             , zip ([-10 .. -1]++[1..10]) (repeat 1)
+             , "square"
+             )
+    funExp = ( exp, exp
+             , zip [-10..10] (repeat 1)
+             , "exp"
+             )  
+    funLog = ( log, recip
+             , map (\x -> (x,x/3)) [0.1,0.2 .. 2] 
+             , "log"
+             )
+
+main :: IO ()
+main = do 
+  res <- runTestTT $ TestList $ concat [ testDifferentiation
+                                       , testIntegration
+                                       ]
+  print res
