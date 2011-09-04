@@ -41,9 +41,9 @@ diffSimmetric :: (Double -> Double) -- ^ Function to differentiate
               -> Double             -- ^ Delta
               -> Double             -- ^ Point at which evaluate differential
               -> Double
-diffSimmetric f h x = (f(x + h) - f(x - h)) / (2 * h)
+diffSimmetric f h x = (f(x + h') - f(x - h')) / (2 * h')
   where
-    h = representableDelta x h
+    h' = representableDelta x h
 
 
 diffRichardson :: (Double -> Double) -- ^ Function
