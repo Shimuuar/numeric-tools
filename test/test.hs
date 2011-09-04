@@ -14,17 +14,17 @@ eq eps a b = abs (a - b) / min (abs a) (abs b) <= eps
 
 
 -- Functions together with indefinite integral and list of ranges
-type Function = ( Double -> Double  -- Function
-                , Double -> Double  -- Integral
-                , [(Double,Double)] -- List of ranges
-                , String            -- Name
-                )
+type FunctionInt = ( Double -> Double  -- Function
+                   , Double -> Double  -- Integral
+                   , [(Double,Double)] -- List of ranges
+                   , String            -- Name
+                   )
 
 -- Test integrator
 integratorTest :: String
                -> (QuadParam -> (Double,Double) -> (Double -> Double) -> QuadRes)
                -> QuadParam
-               -> Function
+               -> FunctionInt
                -> Test
 integratorTest name quad param (f,f',ranges,fname) = TestList
   [ case quadRes $ quad param (a,b) f of
@@ -37,22 +37,6 @@ integratorTest name quad param (f,f',ranges,fname) = TestList
   | (a,b) <- ranges      
   ]
 
-funBlamg,funExp,funLog :: Function
-funBlamg = ( \x -> x^4 * log(x + sqrt (x*x + 1))
-           , \x -> 1/5*x^5 * log(x + sqrt (x*x + 1)) - 1/75*sqrt(x*x+1)*(3*x^4 - 4*x^2 + 8)
-           , [(0,2), (1,3), (-2,3)]
-           , "x^4·log(x + sqrt(x^2 + 1))"
-           )
-funExp = ( exp, exp
-         , [(0,2), (1,3), (-2,3)] 
-         , "exp"
-         )
-funLog = ( log
-         , \x -> x * (log x - 1)
-         , [(1,2), (0.3,3)]
-         , "log"
-         )
-
 
 testIntegrators :: [Test]
 testIntegrators = concat 
@@ -60,3 +44,18 @@ testIntegrators = concat
   , integratorTest "Simpson" quadSimpson   defQuad `map` [funBlamg,funExp,funLog]
   , integratorTest "Romberg" quadRomberg   defQuad `map` [funBlamg,funExp,funLog]
   ]
+  where
+    funBlamg = ( \x -> x^4 * log(x + sqrt (x*x + 1))
+               , \x -> 1/5*x^5 * log(x + sqrt (x*x + 1)) - 1/75*sqrt(x*x+1)*(3*x^4 - 4*x^2 + 8)
+               , [(0,2), (1,3), (-2,3)]
+               , "x^4·log(x + sqrt(x^2 + 1))"
+               )
+    funExp   = ( exp, exp
+               , [(0,2), (1,3), (-2,3)] 
+               , "exp"
+               )
+    funLog   = ( log
+               , \x -> x * (log x - 1)
+               , [(1,2), (0.3,3)]
+               , "log"
+               )
