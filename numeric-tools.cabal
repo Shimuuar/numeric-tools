@@ -21,8 +21,8 @@ Library
                    primitive,
                    vector
   Exposed-modules: Control.Monad.Numeric
-                   Numeric.Equation.Solver
                    Numeric.Classes.Indexing
+                   Numeric.Tools.Equation
                    Numeric.Tools.Differentiation
                    Numeric.Tools.Integration
                    Numeric.Tools.Interpolation

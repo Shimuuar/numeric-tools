@@ -1,4 +1,4 @@
-module Numeric.Equation.Solver ( 
+module Numeric.Tools.Equation ( 
     solveBisection
   ) where
 
