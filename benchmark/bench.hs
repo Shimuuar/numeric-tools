@@ -1,4 +1,5 @@
 import Numeric.Tools.Integration
+import Numeric.Tools.Differentiation
 import Criterion.Main
 
 -- Random function from "Numerical recipes"
@@ -12,4 +13,7 @@ main = defaultMain
        , bench "Simpson[blamg]" $ nf (quadRes . quadSimpson    defQuad (0,2)) exp       
        , bench "Romberg[exp]"   $ nf (quadRes . quadRomberg    defQuad (0,2)) exp
        , bench "Romberg[blamg]" $ nf (quadRes . quadRomberg    defQuad (0,2)) exp
+
+       , bench "Richardson[exp]"   $ nf (diffRes . diffRichardson exp   1) 1
+       , bench "Richardson[blamg]" $ nf (diffRes . diffRichardson blamg 1) 1
        ]
