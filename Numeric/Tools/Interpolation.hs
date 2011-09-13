@@ -67,18 +67,14 @@ instance Mesh a => Indexable (LinearInterp a) where
   {-# INLINE unsafeIndex #-}
 
 instance Interpolation LinearInterp where
-  at = linearInterpolation
+  at                      = linearInterpolation
   tabulateFun    mesh f   = LinearInterp mesh (U.generate (size mesh) (f . unsafeIndex mesh))
   unsafeTabulate mesh tbl = LinearInterp mesh (G.convert tbl)
 
 linearInterpolation :: (Mesh a, IndexVal a ~ Double) => LinearInterp a -> Double -> Double
 linearInterpolation tbl@(LinearInterp mesh _) x = a + (x - xa) / (xb - xa) * (b - a)
   where
-    n  = size mesh - 2
-    i  = meshFindIndex mesh x
-    i' | i < 0     = 0
-       | i > n     = n
-       | otherwise = i
+    i      = safeFindIndex mesh x
     (xa,a) = unsafeIndex tbl  i
     (xb,b) = unsafeIndex tbl (i+1)
 
@@ -97,18 +93,14 @@ data CubicSpline a = CubicSpline { cubicSplineMesh   :: a
 instance Interpolation CubicSpline where
   at (CubicSpline mesh ys y2) x = y
     where
-    n  = size mesh - 2
-    i  = meshFindIndex mesh x
-    i' | i < 0     = 0
-       | i > n     = n
-       | otherwise = i
+    i  = safeFindIndex mesh x
     -- Table lookup
-    xa = unsafeIndex mesh  i'
-    xb = unsafeIndex mesh (i'+1)
-    ya = unsafeIndex ys    i'
-    yb = unsafeIndex ys   (i'+1)
-    da = unsafeIndex y2    i'
-    db = unsafeIndex y2   (i'+1)
+    xa = unsafeIndex mesh  i
+    xb = unsafeIndex mesh (i+1)
+    ya = unsafeIndex ys    i
+    yb = unsafeIndex ys   (i+1)
+    da = unsafeIndex y2    i
+    db = unsafeIndex y2   (i+1)
     -- 
     h  = xb - xa
     a  = (xb - x ) / h
@@ -158,3 +150,12 @@ delta :: (Num (IndexVal a), Indexable a) => a -> Int -> IndexVal a
 delta tbl i = (tbl ! i) - (tbl ! (i - 1))
 {-# INLINE delta #-}
 
+safeFindIndex :: Mesh a => a -> Double -> Int
+safeFindIndex mesh x = 
+  case meshFindIndex mesh x of
+    i | i < 0     -> 0
+      | i > n     -> n
+      | otherwise -> i
+    where
+      n = size mesh - 2
+{-# INLINE safeFindIndex #-}
