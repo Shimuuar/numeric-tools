@@ -1,4 +1,14 @@
--- | Function useful for writing numeric code which works with mutable data
+-- |
+-- Module    : Control.Monad.Numeric
+-- Copyright : (c) 2011 Aleksey Khudyakov
+-- License   : BSD3
+--
+-- Maintainer  : Aleksey Khudyakov <alexey.skladnoy@gmail.com>
+-- Stability   : experimental
+-- Portability : portable
+--
+-- Function useful for writing numeric code which works with mutable
+-- data.
 module Control.Monad.Numeric (
     forGen
   , for
