@@ -122,15 +122,13 @@ makeCubicSpline xs ys = runST $ do
   M.write u  0 0.0
   -- Forward pass
   for 1 (n-1) $ \i -> do
-    do let sig = delta xs i / delta xs (i+1)
-       -- Y2
-       yVal <- M.read y2 (i-1)
-       let p   = sig * yVal + 2
-       M.write y2 i $ (sig - 1) / p
-       -- U
+    do yVal <- M.read y2 (i-1)
        uVal <- M.read u  (i-1)
-       let u' = delta ys (i+1) / delta xs (i+1)  - delta ys i / delta xs i
-       M.write u i $ (6 * u' / (xs ! (i+1) - xs ! (i-1)) - sig * uVal) / p
+       let sig = delta xs i / delta xs (i+1)
+           p   = sig * yVal + 2
+           u'  = delta ys (i+1) / delta xs (i+1)  - delta ys i / delta xs i
+       M.write y2 i $ (sig - 1) / p
+       M.write u  i $ (6 * u' / (xs ! (i+1) - xs ! (i-1)) - sig * uVal) / p
   -- Backward pass
   M.write y2 (n-1) 0.0
   forGen (n-2) (>= 0) pred $ \i -> do
