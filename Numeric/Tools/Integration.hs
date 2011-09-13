@@ -119,7 +119,7 @@ quadRomberg param (a,b) f =
         maxN = maxIter       param
     arr <- M.new maxN
     -- Calculate new approximation
-    let nextAppr n s0 = runNextAppr 0 4 s0 where
+    let nextAppr n = runNextAppr 0 4 where
           runNextAppr i fac s = do
             x <- M.read arr i
             M.write arr i s
