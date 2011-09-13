@@ -1,3 +1,4 @@
+{-# LANGUAGE DeriveDataTypeable #-}
 {-# LANGUAGE TypeFamilies #-}
 -- |
 -- Module    : Numeric.Tools.Mesh
@@ -17,9 +18,9 @@ module Numeric.Tools.Mesh (
   , UniformMesh
   , uniformMesh
   , uniformMeshStep
-    -- * Extra
   ) where
 
+import Data.Data          (Data,Typeable)
 import Numeric.Classes.Indexing
 
 
@@ -54,7 +55,7 @@ data UniformMesh = UniformMesh { uniformMeshFrom :: Double
                                , uniformMeshStep :: Double
                                , uniformMeshSize :: Int
                                }
-                   deriving (Eq,Show)
+                   deriving (Eq,Show,Data,Typeable)
 
 -- | Create uniform mesh 
 uniformMesh :: Double           -- ^ Lower bound
@@ -62,7 +63,7 @@ uniformMesh :: Double           -- ^ Lower bound
             -> Int              -- ^ Number of nodes
             -> UniformMesh
 uniformMesh a b n
-  | b <= a    = error "Numeric.Tool.Interpolation.Mesh.uniformMesh: wrong range"
+  | b <= a    = error "Numeric.Tool.Interpolation.Mesh.uniformMesh: bad range"
   | n <  2    = error "Numeric.Tool.Interpolation.Mesh.uniformMesh: too few nodes"
   | otherwise = UniformMesh a ((b - a) / fromIntegral (n - 1)) n
 

@@ -1,3 +1,4 @@
+{-# LANGUAGE DeriveDataTypeable       #-}
 {-# LANGUAGE ForeignFunctionInterface #-}
 -- |
 -- Module    : Numeric.Tools.Differentiation
@@ -19,7 +20,8 @@ module Numeric.Tools.Differentiation (
   , representableDelta 
   ) where
 
-import Control.Monad.ST (runST)
+import Control.Monad.ST   (runST)
+import Data.Data          (Data,Typeable)
 import qualified Data.Vector.Unboxed.Mutable as M
 import Foreign
 import Foreign.C
@@ -31,7 +33,7 @@ import Numeric.IEEE (infinity, nan)
 data DiffRes = DiffRes { diffRes       :: Double -- ^ Derivative value
                        , diffPrecision :: Double -- ^ Error estimate
                        }
-               deriving (Show,Eq)
+               deriving (Show,Eq,Data,Typeable)
 
 
 -- | Simplest form of differentiation. Should be used only when

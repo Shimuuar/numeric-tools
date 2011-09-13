@@ -1,4 +1,5 @@
-{-# LANGUAGE BangPatterns #-}
+{-# LANGUAGE BangPatterns       #-}
+{-# LANGUAGE DeriveDataTypeable #-}
 -- |
 -- Module    : Numeric.Tools.Integration
 -- Copyright : (c) 2011 Aleksey Khudyakov
@@ -23,6 +24,7 @@ module Numeric.Tools.Integration (
 
 import Control.Monad.ST
 
+import Data.Data (Data,Typeable)
 import qualified Data.Vector.Unboxed         as U
 import qualified Data.Vector.Unboxed.Mutable as M
 
@@ -41,7 +43,7 @@ data QuadParam = QuadParam {
     quadPrecision :: Double -- ^ Relative precision of answer
   , quadMaxIter   :: Int    -- ^ Maximum number of iterations
   }
-  deriving (Show,Eq)
+  deriving (Show,Eq,Data,Typeable)
 
 -- Number of iterations limited to 30
 maxIter :: QuadParam -> Int
@@ -61,7 +63,7 @@ data QuadRes = QuadRes { quadRes     :: Maybe Double -- ^ Integraion result
                        , quadPrecEst :: Double       -- ^ Rough estimate of attained precision
                        , quadNIter   :: Int          -- ^ Number of iterations
                        }
-               deriving (Show,Eq)
+               deriving (Show,Eq,Data,Typeable)
 
 
 
