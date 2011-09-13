@@ -18,8 +18,9 @@ source-repository head
 
 Library
   Build-Depends:   base >=3 && <5,
+                   ieee754 >= 0.7.3,
                    primitive,
-                   vector
+                   vector >= 0.7.0.1
   Exposed-modules: Control.Monad.Numeric
                    Numeric.Classes.Indexing
                    Numeric.Tools.Equation
@@ -27,5 +28,4 @@ Library
                    Numeric.Tools.Integration
                    Numeric.Tools.Interpolation
                    Numeric.Tools.Mesh
-                   Numeric.FloatingPoint
   c-sources:       cbits/ieee.c

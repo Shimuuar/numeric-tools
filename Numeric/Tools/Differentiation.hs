@@ -24,7 +24,7 @@ import qualified Data.Vector.Unboxed.Mutable as M
 import Foreign
 import Foreign.C
 
-import Numeric.FloatingPoint
+import Numeric.IEEE (infinity, nan)
 
 
 
@@ -96,7 +96,7 @@ diffRichardson f h x0 = runST $ do
            | otherwise                     -> worker (i+1) hh' err' ans'
   -- Calculate
   M.write arr 0 $ (f (x0 + h) - f (x0 - h)) / (2*h)
-  worker 1 h posInfty nan
+  worker 1 h infinity nan
 
 
 
