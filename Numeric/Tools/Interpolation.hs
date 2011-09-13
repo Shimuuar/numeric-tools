@@ -17,9 +17,8 @@ module Numeric.Tools.Interpolation (
     Interpolation(..)
     -- * Linear interpolation
   , LinearInterp
-  , linearInterpMesh
-  , linearInterpTable
     -- * Cubic splines
+  , CubicSpline
   ) where
 
 import Control.Monad.ST   (runST)
@@ -39,9 +38,9 @@ import Numeric.Tools.Mesh
 
 -- | Interpolation for arbitraty meshes
 class Interpolation a where
-  -- | Interpolate function at some point. Interpolation should not
-  --   fail outside of mesh however it may and will give nonsensical
-  --   results
+  -- | Interpolate function at some point. Function should not
+  --   fail outside of mesh however it may and most likely will give
+  --   nonsensical results
   at          :: (IndexVal m ~ Double, Mesh m) => a m -> Double -> Double
   -- | Tabulate function
   tabulateFun :: (IndexVal m ~ Double, Mesh m) => m -> (Double -> Double) -> a m
@@ -49,6 +48,11 @@ class Interpolation a where
   --   and table must coincide but it's not checked. Do not use this
   --   function use 'tabulate' instead.
   unsafeTabulate :: (IndexVal m ~ Double, Mesh m, G.Vector v Double) => m -> v Double -> a m
+  -- | Get mesh.
+  interpolationMesh  :: a m -> m
+  -- | Get table of function values 
+  interpolationTable :: a m -> U.Vector Double
+    
 
 -- | Use table of already evaluated function and mesh. Sizes of mesh
 --   and table must coincide. 
@@ -81,6 +85,8 @@ instance Interpolation LinearInterp where
   at                      = linearInterpolation
   tabulateFun    mesh f   = LinearInterp mesh (U.generate (size mesh) (f . unsafeIndex mesh))
   unsafeTabulate mesh tbl = LinearInterp mesh (G.convert tbl)
+  interpolationMesh       = linearInterpMesh
+  interpolationTable      = linearInterpTable
 
 linearInterpolation :: (Mesh a, IndexVal a ~ Double) => LinearInterp a -> Double -> Double
 linearInterpolation tbl@(LinearInterp mesh _) x = a + (x - xa) / (xb - xa) * (b - a)
@@ -95,11 +101,12 @@ linearInterpolation tbl@(LinearInterp mesh _) x = a + (x - xa) / (xb - xa) * (b 
 -- Cubic splines
 ----------------------------------------------------------------
 
+-- | Natural cubic splines
 data CubicSpline a = CubicSpline { cubicSplineMesh   :: a
-                                   , cubicSplineTable  :: U.Vector Double
-                                   , cubicSplineY2     :: U.Vector Double
-                                   }
-                      deriving (Eq,Show,Data,Typeable)
+                                 , cubicSplineTable  :: U.Vector Double
+                                 , cubicSplineY2     :: U.Vector Double
+                                 }
+                   deriving (Eq,Show,Data,Typeable)
 
 instance Interpolation CubicSpline where
   at (CubicSpline mesh ys y2) x = y
@@ -121,6 +128,8 @@ instance Interpolation CubicSpline where
   ------
   tabulateFun    mesh f   = makeCubicSpline mesh (U.generate (size mesh) (f . unsafeIndex mesh))
   unsafeTabulate mesh tbl = makeCubicSpline mesh (G.convert tbl)
+  interpolationMesh       = cubicSplineMesh
+  interpolationTable      = cubicSplineTable
       
 
 -- These are natural cubic splines
