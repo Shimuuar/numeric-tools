@@ -23,11 +23,11 @@ import qualified Data.Vector.Storable as S
 --   by integer index starting from zero.
 class Indexable a where
   type IndexVal a :: *
-  -- | Size of table
+  -- | Size of table.
   size        :: a -> Int
-  -- | Index table without range cheking
+  -- | /O(1)/ Index table without range cheking.
   unsafeIndex :: a -> Int -> IndexVal a
-  -- | Safe indexing.
+  -- | /O(1)/ Safe indexing. Calls error if index is out of range.
   (!)         :: a -> Int -> IndexVal a
   x ! i | i < 0 || i > size x = error "Numeric.Classes.Indexing.!: index is out of range"
         | otherwise           = unsafeIndex x i
