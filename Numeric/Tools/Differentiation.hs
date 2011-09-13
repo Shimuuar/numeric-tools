@@ -114,10 +114,9 @@ diffSimmetric f h x = (f(x + h') - f(x - h')) / (2 * h')
     h' = representableDelta x h
 
 
-
-
-
       
+----------------------------------------------------------------
+-- Helpers
 ----------------------------------------------------------------
 
 -- replace :: (PrimMonad m, M.MVector v a) => v (PrimState m) a -> Int -> a -> m a
