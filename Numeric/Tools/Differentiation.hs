@@ -9,15 +9,20 @@
 -- Stability   : experimental
 -- Portability : portable
 --
--- Numerical differentiation.
+-- Numerical differentiation. 'diffRichardson' is preferred way to
+-- calculate derivative.
 --
 module Numeric.Tools.Differentiation (
+    -- * Differentiation
     DiffRes(..)
+  , diffRichardson
+    -- * Fast but imprecise
   , diffSimple
   , diffSimmetric
-  , diffRichardson
     -- * Utils
   , representableDelta 
+    -- * References
+    -- $references
   ) where
 
 import Control.Monad.ST   (runST)
@@ -30,39 +35,19 @@ import Numeric.IEEE (infinity, nan)
 
 
 
+-- | Differentiation result
 data DiffRes = DiffRes { diffRes       :: Double -- ^ Derivative value
-                       , diffPrecision :: Double -- ^ Error estimate
+                       , diffPrecision :: Double -- ^ Rough error estimate
                        }
                deriving (Show,Eq,Data,Typeable)
 
-
--- | Simplest form of differentiation. Should be used only when
---   function evaluation is prohibitively expensive and already
---   computed value at point @x@ should be reused.
+-- | Calculate derivative using Richaradson's deferred approach to
+--   limit. This is a preferred method for numeric differentiation
+--   since it's most precise. Function could be evaluated up to 20
+--   times.
 --
---   > f'(x) = f(x+h) - f(x) / h
-diffSimple :: (Double -> Double) -- ^ Function to differentiate
-           -> Double             -- ^ Delta
-           -> (Double,Double)    -- ^ Coordinate and function value at this point
-           -> Double
-diffSimple f h (x,fx) = (f (x + h') - fx) / h' where h' = representableDelta x h
-{-# INLINE diffSimple #-}                                                     
-
-
--- | Simple differentiation. It uses simmetric rule and provide
---   reasonable accuracy. It's suitable when function evaluation is
---   expensive and precision could be traded for speed.
---
--- > f'(x) = f(x-h) + f(x+h) / 2h
-diffSimmetric :: (Double -> Double) -- ^ Function to differentiate
-              -> Double             -- ^ Delta
-              -> Double             -- ^ Point at which evaluate differential
-              -> Double
-diffSimmetric f h x = (f(x + h') - f(x - h')) / (2 * h')
-  where
-    h' = representableDelta x h
-
-
+--   Initial step size should be chosen fairly big. Too small one will
+--   result reduced precision, too big one in nonsensical answer.
 diffRichardson :: (Double -> Double) -- ^ Function
                -> Double             -- ^ Delta
                -> Double             -- ^ Point at which evaluate differential
@@ -102,6 +87,36 @@ diffRichardson f h x0 = runST $ do
 
 
 
+-- | Simplest form of differentiation. Should be used only when
+--   function evaluation is prohibitively expensive and already
+--   computed value at point @x@ should be reused.
+--
+--   > f'(x) = f(x+h) - f(x) / h
+diffSimple :: (Double -> Double) -- ^ Function to differentiate
+           -> Double             -- ^ Delta
+           -> (Double,Double)    -- ^ Coordinate and function value at this point
+           -> Double
+diffSimple f h (x,fx) = (f (x + h') - fx) / h' where h' = representableDelta x h
+{-# INLINE diffSimple #-}                                                     
+
+
+-- | Simple differentiation. It uses simmetric rule and provide
+--   reasonable accuracy. It's suitable when function evaluation is
+--   expensive and precision could be traded for speed.
+--
+-- > f'(x) = f(x-h) + f(x+h) / 2h
+diffSimmetric :: (Double -> Double) -- ^ Function to differentiate
+              -> Double             -- ^ Delta
+              -> Double             -- ^ Point at which evaluate differential
+              -> Double
+diffSimmetric f h x = (f(x + h') - f(x - h')) / (2 * h')
+  where
+    h' = representableDelta x h
+
+
+
+
+
       
 ----------------------------------------------------------------
 
@@ -123,3 +138,10 @@ representableDelta x h = realToFrac $ unsafePerformIO $ representableDeltaFFI (r
 
 foreign import ccall "numeric_tools_representable_delta" 
   representableDeltaFFI :: CDouble -> CDouble -> IO CDouble
+
+
+-- $references
+--
+-- * Ridders, C.J.F. 1982, Accurate computation of F`(x) and
+--   F`(x)F``(x), Advances in Engineering Software, vol. 4, no. 2,
+--   pp. 75-76.
