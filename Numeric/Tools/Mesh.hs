@@ -29,15 +29,17 @@ import Numeric.Classes.Indexing
 -- Type class
 ----------------------------------------------------------------
 
--- | Class for one dimensional meshes. Mesh is ordered set of points.
+-- | Class for 1-dimensional meshes. Mesh is ordered set of
+-- points. Each instance must guarantee that every next point is
+-- greater that previous and there is at least 2 points in mesh.
 class Indexable a => Mesh a where
   -- | Low bound of mesh
   meshLowerBound :: a -> Double
-  -- | Upper bound of mesh 
+  -- | Upper bound of mesh
   meshUpperBound :: a -> Double
-  
-  -- | Find such index for value that 
-  -- 
+
+  -- | Find such index for value that
+  --
   -- > mesh ! i <= x && mesh ! i+1 > x
   --
   -- Will return invalid index if value is out of range.
@@ -52,25 +54,26 @@ class Indexable a => Mesh a where
 
 -- | Uniform mesh
 data UniformMesh = UniformMesh { uniformMeshFrom :: Double
-                               , uniformMeshStep :: Double
+                               , uniformMeshStep :: Double 
+                                 -- ^ Distance between points
                                , uniformMeshSize :: Int
                                }
                    deriving (Eq,Show,Data,Typeable)
 
--- | Create uniform mesh 
+-- | Create uniform mesh
 uniformMesh :: Double           -- ^ Lower bound
             -> Double           -- ^ Upper bound
-            -> Int              -- ^ Number of nodes
+            -> Int              -- ^ Number of points
             -> UniformMesh
 uniformMesh a b n
   | b <= a    = error "Numeric.Tool.Interpolation.Mesh.uniformMesh: bad range"
-  | n <  2    = error "Numeric.Tool.Interpolation.Mesh.uniformMesh: too few nodes"
+  | n <  2    = error "Numeric.Tool.Interpolation.Mesh.uniformMesh: too few points"
   | otherwise = UniformMesh a ((b - a) / fromIntegral (n - 1)) n
 
 
 instance Indexable UniformMesh where
   type IndexVal UniformMesh = Double
-  size                               = uniformMeshSize  
+  size                               = uniformMeshSize
   unsafeIndex (UniformMesh a da n) i = a + fromIntegral i * da
 
 instance Mesh UniformMesh where
