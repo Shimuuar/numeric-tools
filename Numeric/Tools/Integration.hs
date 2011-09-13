@@ -9,10 +9,24 @@
 -- Stability   : experimental
 -- Portability : portable
 --
--- Funtions for numerical instegration.
+-- Funtions for numerical integration. 'quadRomberg' or 'quadSimpson'
+-- are reasonable choices in most cases. For non-smooth function they
+-- converge poorly and 'quadTrapezoid' should be used then.
 --
+-- For example this code intergrates exponent from 0 to 1:
+--
+-- >>> let res = quadRomberg defQuad (0, 1) exp
+--
+-- >>> quadRes res     -- Integration result
+-- Just 1.718281828459045
+--
+-- >>> quadPrecEst res -- Estimate of precision
+-- 2.5844957590474064e-16
+--
+-- >>> quadNIter res   -- Number of iterations performed
+-- 6
 module Numeric.Tools.Integration (
-    -- * Integration parameters
+    -- * Integration parameters and results
     QuadParam(..)
   , defQuad
   , QuadRes(..)
@@ -52,13 +66,14 @@ maxIter = min 30 . quadMaxIter
 -- | Default parameters for integration functions
 --
 -- * Maximum number of iterations = 20
--- * Precision is 1e-9
+--
+-- * Precision is 10&#8315;&#8313;
 defQuad :: QuadParam
 defQuad =  QuadParam { quadPrecision = 1e-9
                      , quadMaxIter   = 20
                      }
 
--- | Result of numeric integration
+-- | Result of numeric integration.
 data QuadRes = QuadRes { quadRes     :: Maybe Double -- ^ Integraion result
                        , quadPrecEst :: Double       -- ^ Rough estimate of attained precision
                        , quadNIter   :: Int          -- ^ Number of iterations
@@ -71,9 +86,12 @@ data QuadRes = QuadRes { quadRes     :: Maybe Double -- ^ Integraion result
 -- Different integration methods
 ----------------------------------------------------------------
 
--- | Integration of using trapezoids.
-quadTrapezoid :: QuadParam          -- ^ Precision
-              -> (Double, Double)   -- ^ Integration limit
+-- | Integration of using trapezoids. This is robust algorithm and
+--   place and useful for not very smooth. But it is very slow. It
+--   hundreds times slower then 'quadRomberg' if function is
+--   sufficiently smooth.
+quadTrapezoid :: QuadParam          -- ^ Parameters
+              -> (Double, Double)   -- ^ Integration limits
               -> (Double -> Double) -- ^ Function to integrate
               -> QuadRes
 quadTrapezoid param (a,b) f = worker 1 1 (trapGuess a b f)
@@ -89,9 +107,11 @@ quadTrapezoid param (a,b) f = worker 1 1 (trapGuess a b f)
         d  = abs (q' - q) / abs q          -- Precision estimate
         ret = \x -> QuadRes x d n
 
--- | Integration using Simpson rule.
-quadSimpson :: QuadParam          -- ^ Precision
-            -> (Double, Double)   -- ^ Integration limit
+-- | Integration using Simpson rule. It should be more efficient than
+--   'quadTrapezoid' if function being integrated have finite fourth
+--   derivative.
+quadSimpson :: QuadParam          -- ^ Parameters
+            -> (Double, Double)   -- ^ Integration limits
             -> (Double -> Double) -- ^ Function to integrate
             -> QuadRes
 quadSimpson param (a,b) f = worker 1 1  0 (trapGuess a b f)
@@ -108,9 +128,10 @@ quadSimpson param (a,b) f = worker 1 1  0 (trapGuess a b f)
         d   = abs (s' - s) / abs s
         ret = \x -> QuadRes x d n
 
--- | Integration using Romberg rule.
-quadRomberg :: QuadParam          -- ^ Precision
-            -> (Double, Double)   -- ^ Integration limit
+-- | Integration using Romberg rule. For sufficiently smooth functions
+--   (e.g. analytic) it's a fastest of three.
+quadRomberg :: QuadParam          -- ^ Parameters
+            -> (Double, Double)   -- ^ Integration limits
             -> (Double -> Double) -- ^ Function to integrate
             -> QuadRes
 quadRomberg param (a,b) f =
