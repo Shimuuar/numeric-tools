@@ -1,4 +1,13 @@
 {-# LANGUAGE TypeFamilies #-}
+-- |
+-- Module    : Numeric.Classes.Indexing
+-- Copyright : (c) 2011 Aleksey Khudyakov
+-- License   : BSD3
+--
+-- Maintainer  : Aleksey Khudyakov <alexey.skladnoy@gmail.com>
+-- Stability   : experimental
+-- Portability : portable
+--
 module Numeric.Classes.Indexing (
     Indexable(..)
   , validIndex
@@ -10,7 +19,8 @@ import qualified Data.Vector.Storable as S
 
 
 
--- | 
+-- | Type class for array-like data type which support @O(1)@ access
+--   by integer index starting from zero.
 class Indexable a where
   type IndexVal a :: *
   -- | Size of table

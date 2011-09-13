@@ -1,6 +1,17 @@
 {-# LANGUAGE FlexibleContexts   #-}
 {-# LANGUAGE DeriveDataTypeable #-}
 {-# LANGUAGE TypeFamilies       #-}
+-- |
+-- Module    : Numeric.Tools.Interpolation
+-- Copyright : (c) 2011 Aleksey Khudyakov
+-- License   : BSD3
+--
+-- Maintainer  : Aleksey Khudyakov <alexey.skladnoy@gmail.com>
+-- Stability   : experimental
+-- Portability : portable
+--
+-- Function interpolation.
+--
 module Numeric.Tools.Interpolation (
     -- * Type class
     Interpolation(..)

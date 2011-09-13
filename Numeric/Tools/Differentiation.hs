@@ -1,4 +1,15 @@
 {-# LANGUAGE ForeignFunctionInterface #-}
+-- |
+-- Module    : Numeric.Tools.Differentiation
+-- Copyright : (c) 2011 Aleksey Khudyakov
+-- License   : BSD3
+--
+-- Maintainer  : Aleksey Khudyakov <alexey.skladnoy@gmail.com>
+-- Stability   : experimental
+-- Portability : portable
+--
+-- Numerical differentiation.
+--
 module Numeric.Tools.Differentiation (
     DiffRes(..)
   , diffSimple

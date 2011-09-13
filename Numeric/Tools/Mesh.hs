@@ -1,4 +1,15 @@
 {-# LANGUAGE TypeFamilies #-}
+-- |
+-- Module    : Numeric.Tools.Mesh
+-- Copyright : (c) 2011 Aleksey Khudyakov
+-- License   : BSD3
+--
+-- Maintainer  : Aleksey Khudyakov <alexey.skladnoy@gmail.com>
+-- Stability   : experimental
+-- Portability : portable
+--
+-- 1-dimensional meshes. Used by 'Numeric.Tools.Interpolation'.
+--
 module Numeric.Tools.Mesh (
     -- * Meshes
     Mesh(..)
@@ -6,6 +17,7 @@ module Numeric.Tools.Mesh (
   , UniformMesh
   , uniformMesh
   , uniformMeshStep
+    -- * Extra
   ) where
 
 import Numeric.Classes.Indexing
@@ -25,7 +37,7 @@ class Indexable a => Mesh a where
   
   -- | Find such index for value that 
   -- 
-  -- > mesh <! i <= x && mesh <! i+1 > x
+  -- > mesh ! i <= x && mesh ! i+1 > x
   --
   -- Will return invalid index if value is out of range.
   meshFindIndex :: a -> Double -> Int
