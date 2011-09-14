@@ -103,8 +103,8 @@ quadTrapezoid param (a,b) f = worker 1 1 (trapGuess a b f)
       | n >= maxN        = ret Nothing
       | otherwise        = worker (n+1) (nPoints*2) q'
       where
-        q' = nextTrapezoid a b nPoints f q -- New approximation
-        d  = abs (q' - q) / abs q          -- Precision estimate
+        q'  = nextTrapezoid a b nPoints f q -- New approximation
+        d   = abs (q' - q) / abs q          -- Precision estimate
         ret = \x -> QuadRes x d n
 
 -- | Integration using Simpson rule. It should be more efficient than
