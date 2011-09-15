@@ -61,11 +61,10 @@ data UniformMesh = UniformMesh { uniformMeshFrom :: Double
                    deriving (Eq,Show,Data,Typeable)
 
 -- | Create uniform mesh
-uniformMesh :: Double           -- ^ Lower bound
-            -> Double           -- ^ Upper bound
+uniformMesh :: (Double,Double)  -- ^ Lower and upper bound
             -> Int              -- ^ Number of points
             -> UniformMesh
-uniformMesh a b n
+uniformMesh (a,b) n
   | b <= a    = error "Numeric.Tool.Interpolation.Mesh.uniformMesh: bad range"
   | n <  2    = error "Numeric.Tool.Interpolation.Mesh.uniformMesh: too few points"
   | otherwise = UniformMesh a ((b - a) / fromIntegral (n - 1)) n
