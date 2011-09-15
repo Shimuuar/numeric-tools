@@ -73,9 +73,9 @@ uniformMesh (a,b) n
 instance Indexable UniformMesh where
   type IndexVal UniformMesh = Double
   size                               = uniformMeshSize
-  unsafeIndex (UniformMesh a da n) i = a + fromIntegral i * da
+  unsafeIndex (UniformMesh a da _) i = a + fromIntegral i * da
 
 instance Mesh UniformMesh where
   meshLowerBound                        = uniformMeshFrom
   meshUpperBound (UniformMesh a da n)   = a + da * fromIntegral (n - 1)
-  meshFindIndex  (UniformMesh a da n) x = truncate $ (x - a) / da
+  meshFindIndex  (UniformMesh a da _) x = truncate $ (x - a) / da

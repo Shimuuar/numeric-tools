@@ -20,6 +20,7 @@
 module Numeric.Tools.Interpolation (
     -- * Type class
     Interpolation(..)
+  , tabulate
     -- * Linear interpolation
   , LinearInterp
   , linearInterp
