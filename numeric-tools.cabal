@@ -6,15 +6,17 @@ License-File:   LICENSE
 Author:         Aleksey Khudyakov <alexey.skladnoy@gmail.com>
 Maintainer:     Aleksey Khudyakov <alexey.skladnoy@gmail.com>
 Homepage:       
-Category:       Math
+Category:       Math, Numerical
 Build-Type:     Simple
-Synopsis:       
+Synopsis:       Collection of tools numeric integration, differentiation etc.
   
-Description: Vectors with a fixed length
+Description:
+  Package provides function to perform numeric integration and
+  differentiation, function interpolation.
 
 source-repository head
   type:     hg
-  location: https://bitbucket.org/Shimuuar/equation-solver
+  location: https://bitbucket.org/Shimuuar/numeric-tools
 
 Library
   Build-Depends:   base >=3 && <5,
