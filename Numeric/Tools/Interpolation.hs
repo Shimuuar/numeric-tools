@@ -17,8 +17,10 @@ module Numeric.Tools.Interpolation (
     Interpolation(..)
     -- * Linear interpolation
   , LinearInterp
+  , linearInterp
     -- * Cubic splines
   , CubicSpline
+  , cubicSpline
   ) where
 
 import Control.Monad.ST   (runST)
@@ -72,6 +74,10 @@ data LinearInterp a = LinearInterp { linearInterpMesh  :: a
                                    }
                       deriving (Show,Eq,Data,Typeable)
 
+-- | Function used to fix types
+linearInterp :: LinearInterp a -> LinearInterp a
+linearInterp = id
+
 instance Mesh a => Indexable (LinearInterp a) where
   type IndexVal (LinearInterp a) = (IndexVal a, Double)
   size        (LinearInterp _    vec)   = size vec
@@ -107,6 +113,10 @@ data CubicSpline a = CubicSpline { cubicSplineMesh   :: a
                                  , cubicSplineY2     :: U.Vector Double
                                  }
                    deriving (Eq,Show,Data,Typeable)
+
+-- | Function used to fix types
+cubicSpline :: CubicSpline a -> CubicSpline a 
+cubicSpline = id
 
 instance Interpolation CubicSpline where
   at (CubicSpline mesh ys y2) x = y
