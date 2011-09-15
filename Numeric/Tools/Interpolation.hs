@@ -26,6 +26,8 @@ module Numeric.Tools.Interpolation (
     -- * Cubic splines
   , CubicSpline
   , cubicSpline
+    --
+  , module Numeric.Tools.Mesh
   ) where
 
 import Control.Monad.ST   (runST)
