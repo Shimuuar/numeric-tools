@@ -12,6 +12,11 @@
 --
 -- Function interpolation.
 --
+-- Sine interpolation using cubic splines:
+--
+-- >>> let tbl = cubicSpline $ tabulateFun (uniformMesh (0,10) 100) sin
+-- >>> tbl `at` 1.786
+-- 0.9769239849844867
 module Numeric.Tools.Interpolation (
     -- * Type class
     Interpolation(..)
