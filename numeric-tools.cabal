@@ -1,14 +1,15 @@
 Name:           numeric-tools
-Version:        0.1
+Version:        0.1.0.0
 Cabal-Version:  >= 1.6
 License:        BSD3
 License-File:   LICENSE
 Author:         Aleksey Khudyakov <alexey.skladnoy@gmail.com>
 Maintainer:     Aleksey Khudyakov <alexey.skladnoy@gmail.com>
-Homepage:       
+Homepage:       https://bitbucket.org/Shimuuar/numeric-tools
+bug-reports:    https://bitbucket.org/Shimuuar/numeric-tools/issues
 Category:       Math, Numerical
 Build-Type:     Simple
-Synopsis:       Collection of tools numeric integration, differentiation etc.
+Synopsis:       Collection of numerical tools for integration, differentiation etc.
   
 Description:
   Package provides function to perform numeric integration and
