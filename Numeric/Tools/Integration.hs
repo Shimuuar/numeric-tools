@@ -138,7 +138,7 @@ quadRomberg param (a,b) f =
   runST $ do
     let eps  = quadPrecision param
         maxN = maxIter       param
-    arr <- M.new maxN
+    arr <- M.new (maxN + 1)
     -- Calculate new approximation
     let nextAppr n = runNextAppr 0 4 where
           runNextAppr i fac s = do
