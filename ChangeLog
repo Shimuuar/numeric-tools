@@ -1,0 +1,4 @@
+
+Changes in 0.1.0.1
+	* Fixed bug in quadRomberg which caused crash if algorithm fails to
+	  converge

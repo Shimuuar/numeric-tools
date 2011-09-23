@@ -1,5 +1,5 @@
 Name:           numeric-tools
-Version:        0.1.0.0
+Version:        0.1.0.1
 Cabal-Version:  >= 1.6
 License:        BSD3
 License-File:   LICENSE
@@ -14,6 +14,12 @@ Synopsis:       Collection of numerical tools for integration, differentiation e
 Description:
   Package provides function to perform numeric integration and
   differentiation, function interpolation.
+  .
+  Changes in 0.1.0.1
+  .
+  * Fixed bug in quadRomberg which caused crash if algorithm fails to
+    converge
+
 
 source-repository head
   type:     hg
