@@ -42,6 +42,7 @@ import Data.Data (Data,Typeable)
 import qualified Data.Vector.Unboxed         as U
 import qualified Data.Vector.Unboxed.Mutable as M
 
+import qualified Numeric.IEEE                as IEEE
 
 
 ----------------------------------------------------------------
@@ -99,13 +100,12 @@ quadTrapezoid param (a,b) f = worker 1 1 (trapGuess a b f)
     eps  = quadPrecision param  -- Requred precision
     maxN = maxIter param        -- Maximum allowed number of iterations
     worker n nPoints q
-      | n > 5 && d < eps = ret (Just q')
-      | n >= maxN        = ret Nothing
-      | otherwise        = worker (n+1) (nPoints*2) q'
+      | n > 5 && converged eps q q' = ret (Just q')
+      | n >= maxN                   = ret Nothing
+      | otherwise                   = worker (n+1) (nPoints*2) q'
       where
         q'  = nextTrapezoid a b nPoints f q -- New approximation
-        d   = abs (q' - q) / abs q          -- Precision estimate
-        ret = \x -> QuadRes x d n
+        ret = \x -> QuadRes x (estimatePrec q q') n
 
 -- | Integration using Simpson rule. It should be more efficient than
 --   'quadTrapezoid' if function being integrated have finite fourth
@@ -119,14 +119,13 @@ quadSimpson param (a,b) f = worker 1 1  0 (trapGuess a b f)
     eps  = quadPrecision param  -- Requred precision
     maxN = maxIter param        -- Maximum allowed number of points for evaluation
     worker n nPoints s st
-      | n > 5 && d < eps = ret (Just s')
-      | n >= maxN        = ret Nothing
-      | otherwise        = worker (n+1) (nPoints*2) s' st'
+      | n > 5 && converged eps s s' = ret (Just s')
+      | n >= maxN                   = ret Nothing
+      | otherwise                   = worker (n+1) (nPoints*2) s' st'
       where
         st' = nextTrapezoid a b nPoints f st
         s'  = (4*st' - st) / 3
-        d   = abs (s' - s) / abs s
-        ret = \x -> QuadRes x d n
+        ret = \x -> QuadRes x (estimatePrec s s') n
 
 -- | Integration using Romberg rule. For sufficiently smooth functions
 --   (e.g. analytic) it's a fastest of three.
@@ -151,11 +150,11 @@ quadRomberg param (a,b) f =
     let worker n nPoints st s = do
           let st' = nextTrapezoid a b nPoints f st
           s' <- M.write arr 0 st >> nextAppr n st'
-          let d = abs (s' - s) / abs s
+          let ret x = return $ QuadRes x (estimatePrec s s') n
           case () of
-            _ | n > 5 && d < eps -> return $ QuadRes (Just s') d n
-              | n >= maxN        -> return $ QuadRes Nothing   d n
-              | otherwise        -> worker (n+1) (nPoints*2) st' s'
+            _ | n > 5 && converged eps s s' -> ret (Just s')
+              | n >= maxN                   -> ret Nothing
+              | otherwise                   -> worker (n+1) (nPoints*2) st' s'
     -- Calculate integral
     worker 1 1 st0 st0 where  st0 = trapGuess a b f
 
@@ -182,3 +181,26 @@ nextTrapezoid !a !b !n f !q = 0.5 * (q + sep * s)
     sep = (b - a) / fromIntegral n                  -- Separation between points
     x0  = a + 0.5 * sep                             -- Starting point
     s   = U.sum $ U.map f $ U.iterateN n (+sep) x0  -- Sum of all points
+
+
+-- Check for convergence. Convergence to zero is tricky case since we
+-- use relative error and checking for convergence to zero requires
+-- absolute one. Instead iteration have converged if two successive
+-- operations produced zero
+converged :: Double -> Double -> Double -> Bool
+converged eps q q'
+  -- Iterations yielded same numbers.
+  | q == q'                 = True
+  -- Both numbers have identical IEEE representation It's not the same
+  -- as previous clause because of excess precision. And previous
+  -- clause is required because of negative zero.
+  | IEEE.identicalIEEE q q' = True
+  -- Usual check for convergence.
+  | otherwise = abs (q' - q) < eps * abs q
+{-# INLINE converged #-}
+
+-- Estimate precision
+estimatePrec :: Double -> Double -> Double
+estimatePrec q q'
+  | q == 0 && q' == 0 = 0
+  | otherwise         = abs (q - q') / abs q
