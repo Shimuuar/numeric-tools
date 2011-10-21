@@ -76,6 +76,7 @@ defQuad =  QuadParam { quadPrecision = 1e-9
 
 -- | Result of numeric integration.
 data QuadRes = QuadRes { quadRes     :: Maybe Double -- ^ Integraion result
+                       , quadBestEst :: Double       -- ^ Best estimate of integral
                        , quadPrecEst :: Double       -- ^ Rough estimate of attained precision
                        , quadNIter   :: Int          -- ^ Number of iterations
                        }
@@ -100,12 +101,14 @@ quadTrapezoid param (a,b) f = worker 1 1 (trapGuess a b f)
     eps  = quadPrecision param  -- Requred precision
     maxN = maxIter param        -- Maximum allowed number of iterations
     worker n nPoints q
-      | n > 5 && converged eps q q' = ret (Just q')
-      | n >= maxN                   = ret Nothing
+      | n > 5 && converged eps q q' = done True
+      | n >= maxN                   = done False
       | otherwise                   = worker (n+1) (nPoints*2) q'
       where
         q'  = nextTrapezoid a b nPoints f q -- New approximation
-        ret = \x -> QuadRes x (estimatePrec q q') n
+        done True  = QuadRes (Just q') q' (estimatePrec q q') n
+        done False = QuadRes Nothing   q' (estimatePrec q q') n
+
 
 -- | Integration using Simpson rule. It should be more efficient than
 --   'quadTrapezoid' if function being integrated have finite fourth
@@ -119,13 +122,14 @@ quadSimpson param (a,b) f = worker 1 1  0 (trapGuess a b f)
     eps  = quadPrecision param  -- Requred precision
     maxN = maxIter param        -- Maximum allowed number of points for evaluation
     worker n nPoints s st
-      | n > 5 && converged eps s s' = ret (Just s')
-      | n >= maxN                   = ret Nothing
+      | n > 5 && converged eps s s' = done True
+      | n >= maxN                   = done False
       | otherwise                   = worker (n+1) (nPoints*2) s' st'
       where
         st' = nextTrapezoid a b nPoints f st
         s'  = (4*st' - st) / 3
-        ret = \x -> QuadRes x (estimatePrec s s') n
+        done True  = QuadRes (Just s') s' (estimatePrec s s') n
+        done False = QuadRes Nothing   s' (estimatePrec s s') n
 
 -- | Integration using Romberg rule. For sufficiently smooth functions
 --   (e.g. analytic) it's a fastest of three.
@@ -150,10 +154,11 @@ quadRomberg param (a,b) f =
     let worker n nPoints st s = do
           let st' = nextTrapezoid a b nPoints f st
           s' <- M.write arr 0 st >> nextAppr n st'
-          let ret x = return $ QuadRes x (estimatePrec s s') n
+          let done True  = return $ QuadRes (Just s') s' (estimatePrec s s') n
+              done False = return $ QuadRes Nothing   s' (estimatePrec s s') n
           case () of
-            _ | n > 5 && converged eps s s' -> ret (Just s')
-              | n >= maxN                   -> ret Nothing
+            _ | n > 5 && converged eps s s' -> done True
+              | n >= maxN                   -> done False
               | otherwise                   -> worker (n+1) (nPoints*2) st' s'
     -- Calculate integral
     worker 1 1 st0 st0 where  st0 = trapGuess a b f
