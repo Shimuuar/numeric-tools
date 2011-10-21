@@ -1,3 +1,4 @@
+{-# LANGUAGE BangPatterns #-}
 {-# LANGUAGE DeriveDataTypeable #-}
 -- |
 -- Module    : Numeric.Tools.Equation
@@ -15,9 +16,13 @@ module Numeric.Tools.Equation (
   , fromRoot
     -- * Equations solversv
   , solveBisection
+  , solveRidders  
+  -- * References
+  -- $references
   ) where
 
 import Numeric.IEEE        (epsilon)
+import Numeric.ApproxEq
 
 import Control.Applicative
 import Control.Monad       (MonadPlus(..), ap)
@@ -94,4 +99,55 @@ bisectionWorker eps f a b fa fb
   where
     c  = 0.5 * (a + b)
     fc = f c
+
+-- | Use the method of Ridders to compute a root of a function.
+--
+-- The function must have opposite signs when evaluated at the lower
+-- and upper bounds of the search (i.e. the root must be bracketed).
+solveRidders :: Double               -- ^ Absolute error tolerance.
+             -> (Double,Double)      -- ^ Lower and upper bounds for the search.
+             -> (Double -> Double)   -- ^ Function to find the roots of.
+             -> Root Double
+solveRidders eps (lo,hi) f
+    | flo == 0    = Root lo
+    | fhi == 0    = Root hi
+    | flo*fhi > 0 = NotBracketed -- root is not bracketed
+    | otherwise   = go lo flo hi fhi 0
+  where
+    go !a !fa !b !fb !i
+        -- Root is bracketed within 1 ulp. No improvement could be made
+        | within 1 a b       = Root a
+        -- Root is found. Check that f(m) == 0 is nessesary to ensure
+        -- that root is never passed to 'go'
+        | fm == 0            = Root m
+        | fn == 0            = Root n
+        | d < eps            = Root n
+        -- Too many iterations performed. Fail
+        | i >= (100 :: Int)  = SearchFailed
+        -- Ridder's approximation coincide with one of old
+        -- bounds. Revert to bisection
+        | n == a || n == b   = case () of
+          _| fm*fa < 0 -> go a fa m fm (i+1)
+           | otherwise -> go m fm b fb (i+1)
+        -- Proceed as usual
+        | fn*fm < 0          = go n fn m fm (i+1)
+        | fn*fa < 0          = go a fa n fn (i+1)
+        | otherwise          = go n fn b fb (i+1)
+      where
+        d    = abs (b - a)
+        dm   = (b - a) * 0.5
+        !m   = a + dm
+        !fm  = f m
+        !dn  = signum (fb - fa) * dm * fm / sqrt(fm*fm - fa*fb)
+        !n   = m - signum dn * min (abs dn) (abs dm - 0.5 * eps)
+        !fn  = f n
+    !flo = f lo
+    !fhi = f hi
+
+
+-- $references
+--
+-- * Ridders, C.F.J. (1979) A new algorithm for computing a single
+--   root of a real continuous function.
+--   /IEEE Transactions on Circuits and Systems/ 26:979&#8211;980.
 
