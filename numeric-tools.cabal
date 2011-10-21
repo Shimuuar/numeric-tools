@@ -28,8 +28,10 @@ source-repository head
 Library
   Build-Depends:   base >=3 && <5,
                    ieee754 >= 0.7.3,
+                   primitive,
                    vector >= 0.7.0.1
   Exposed-modules: Control.Monad.Numeric
+                   Numeric.ApproxEq
                    Numeric.Classes.Indexing
                    Numeric.Tools.Equation
                    Numeric.Tools.Differentiation
