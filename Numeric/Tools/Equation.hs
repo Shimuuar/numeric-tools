@@ -21,7 +21,6 @@ module Numeric.Tools.Equation (
   -- $references
   ) where
 
-import Numeric.IEEE        (epsilon)
 import Numeric.ApproxEq
 
 import Control.Applicative
@@ -83,22 +82,22 @@ solveBisection :: Double             -- ^ Required absolute precision
                -> (Double,Double)    -- ^ Range
                -> (Double -> Double) -- ^ Equation
                -> Root Double
-solveBisection eps (a,b) f
-  | fa * fb > 0 = NotBracketed
-  | otherwise   = Root $ bisectionWorker (abs eps) f a b fa fb
+solveBisection eps (aa,bb) f
+  | funA * funB > 0 = NotBracketed
+  | otherwise       = worker 0 aa funA bb funB
   where
-    fa = f a
-    fb = f b
+    funA = f aa
+    funB = f bb
+    worker i a fa b fb
+      | i >= (100 :: Int)  = SearchFailed
+      | within 1 a b       = Root a
+      | (b - a)     <= eps = Root c
+      | fa * fc < 0        = worker (i+1) a fa c fc
+      | otherwise          = worker (i+1) c fc b fb
+      where
+        c  = 0.5 * (a + b)
+        fc = f c
 
-bisectionWorker :: Double -> (Double -> Double) -> Double -> Double -> Double -> Double -> Double
-bisectionWorker eps f a b fa fb
-  | (b - a)     <= eps     = c
-  | (b - a) / b <= epsilon = c
-  | fa * fc < 0            = bisectionWorker eps f a c fa fc
-  | otherwise              = bisectionWorker eps f c b fc fb
-  where
-    c  = 0.5 * (a + b)
-    fc = f c
 
 -- | Use the method of Ridders to compute a root of a function.
 --
