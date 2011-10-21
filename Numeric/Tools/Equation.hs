@@ -82,18 +82,21 @@ solveBisection :: Double             -- ^ Required absolute precision
                -> (Double,Double)    -- ^ Range
                -> (Double -> Double) -- ^ Equation
                -> Root Double
-solveBisection eps (aa,bb) f
-  | funA * funB > 0 = NotBracketed
-  | otherwise       = worker 0 aa funA bb funB
+solveBisection eps (lo,hi) f
+  | flo * fhi > 0 = NotBracketed
+  | flo == 0      = Root lo
+  | fhi == 0      = Root hi
+  | otherwise     = worker 0 lo flo hi fhi
   where
-    funA = f aa
-    funB = f bb
+    flo = f lo
+    fhi = f hi
     worker i a fa b fb
-      | i >= (100 :: Int)  = SearchFailed
-      | within 1 a b       = Root a
-      | (b - a)     <= eps = Root c
-      | fa * fc < 0        = worker (i+1) a fa c fc
-      | otherwise          = worker (i+1) c fc b fb
+      | within 1 a b      = Root a
+      | (b - a) <= eps    = Root c
+      | fc == 0           = Root c
+      | i >= (100 :: Int) = SearchFailed
+      | fa * fc < 0       = worker (i+1) a fa c fc
+      | otherwise         = worker (i+1) c fc b fb
       where
         c  = 0.5 * (a + b)
         fc = f c
