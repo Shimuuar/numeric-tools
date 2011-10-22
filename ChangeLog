@@ -1,4 +1,17 @@
+Changes in 0.2.0.0
+  * Equation solvers now use custom return type.
+
+  * Function to solve equations using Ridder's method.
+
+  * New function to test approximate equality for doubles.
+
+  * QuadRes contains best approximation achieved even if required
+    accuracy is not obtained
+
+  * Improve convergence test when integral converges to
+    zero. Convergence is still poor
+
 
 Changes in 0.1.0.1
-	* Fixed bug in quadRomberg which caused crash if algorithm fails to
-	  converge
+  * Fixed bug in quadRomberg which caused crash if algorithm fails to
+    converge
