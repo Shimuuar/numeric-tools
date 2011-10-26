@@ -155,13 +155,12 @@ solveRidders eps (lo,hi) f
 -- | Solve equation using Newton-Raphson method. Root must be
 --   bracketed. If Newton's step jumps outside of bracket or do not
 --   converge sufficiently fast function reverts to bisection.
-solveNewton :: Int                -- ^ Maximum number of iterations
-            -> Double             -- ^ Absolute error tolerance
+solveNewton :: Double             -- ^ Absolute error tolerance
             -> (Double,Double)    -- ^ Lower and upper bounds for root
             -> (Double -> Double) -- ^ Function
             -> (Double -> Double) -- ^ Function's derivative
             -> Root Double
-solveNewton nMax eps (lo,hi) f f'
+solveNewton eps (lo,hi) f f'
   | flo == 0      = Root lo
   | fhi == 0      = Root hi
   | flo * fhi > 0 = NotBracketed
@@ -182,7 +181,7 @@ solveNewton nMax eps (lo,hi) f f'
       | abs dx      < eps = Root x' -- Precision achieved
       | within 0 x x'     = Root x' -- Newton step doesn't improve solution
       -- Too many iterations
-      | i > nMax = SearchFailed
+      | i > (100::Int)    = SearchFailed
       -- Newton step jumped out of range or step decreases too slow.
       -- Revert to bisection.
       -- NOTE this guard is selected if dx evaluated to NaN or ±∞.
