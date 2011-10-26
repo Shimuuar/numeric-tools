@@ -75,10 +75,10 @@ fromRoot _ (Root a) = a
 fromRoot a _        = a
 
 
--- | Solve equation @f(x) = 0@ using bisection method. Function is
---   must be continous. If function has different signs at the ends of
---   initial interval answer is always returned. 'Nothing' is returned
---   if function fails to find an answer.
+-- | Use bisection method to compute root of function.
+--
+-- The function must have opposite signs when evaluated at the lower
+-- and upper bounds of the search (i.e. the root must be bracketed).
 solveBisection :: Double             -- ^ Required absolute precision
                -> (Double,Double)    -- ^ Range
                -> (Double -> Double) -- ^ Equation
