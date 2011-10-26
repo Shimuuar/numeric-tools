@@ -1,5 +1,5 @@
 Name:           numeric-tools
-Version:        0.1.0.1
+Version:        0.2.0.0
 Cabal-Version:  >= 1.6
 License:        BSD3
 License-File:   LICENSE
@@ -19,7 +19,7 @@ Description:
   .
   * Equation solvers now use custom return type.
   .
-  * Function to solve equations using Ridder's method.
+  * Function to solve equations using Ridder and Newton methods.
   .
   * New function to test approximate equality for doubles.
   .

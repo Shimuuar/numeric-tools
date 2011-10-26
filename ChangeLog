@@ -1,7 +1,7 @@
 Changes in 0.2.0.0
   * Equation solvers now use custom return type.
 
-  * Function to solve equations using Ridder's method.
+  * Function to solve equations using Ridder and Newton methods.
 
   * New function to test approximate equality for doubles.
 
