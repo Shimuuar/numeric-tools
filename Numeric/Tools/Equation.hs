@@ -87,17 +87,21 @@ solveBisection eps (lo,hi) f
   | flo * fhi > 0 = NotBracketed
   | flo == 0      = Root lo
   | fhi == 0      = Root hi
-  | otherwise     = worker 0 lo flo hi fhi
+  | flo < 0       = worker 0 lo hi
+  | otherwise     = worker 0 hi lo
   where
     flo = f lo
     fhi = f hi
-    worker i a fa b fb
-      | within 1 a b      = Root a
-      | (b - a) <= eps    = Root c
-      | fc == 0           = Root c
-      | i >= (100 :: Int) = SearchFailed
-      | fa * fc < 0       = worker (i+1) a fa c fc
-      | otherwise         = worker (i+1) c fc b fb
+    -- Worker function. Preconditions:
+    --   f a < 0
+    --   f b > 0
+    worker i a b
+      | within 1 a b       = Root a
+      | abs (b - a) <= eps = Root c
+      | fc == 0            = Root c
+      | i >= (100 :: Int)  = SearchFailed
+      | fc < 0             = worker (i+1) c b
+      | otherwise          = worker (i+1) a c
       where
         c  = 0.5 * (a + b)
         fc = f c
