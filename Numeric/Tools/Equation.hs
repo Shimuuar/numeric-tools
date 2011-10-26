@@ -17,6 +17,7 @@ module Numeric.Tools.Equation (
     -- * Equations solversv
   , solveBisection
   , solveRidders  
+  , solveNewton
   -- * References
   -- $references
   ) where
@@ -145,6 +146,60 @@ solveRidders eps (lo,hi) f
         !fn  = f n
     !flo = f lo
     !fhi = f hi
+
+
+-- | Solve equation using Newton-Raphson method. Root must be
+--   bracketed. If Newton's step jumps outside of bracket or do not
+--   converge sufficiently fast function reverts to bisection.
+solveNewton :: Int                -- ^ Maximum number of iterations
+            -> Double             -- ^ Absolute error tolerance
+            -> (Double,Double)    -- ^ Lower and upper bounds for root
+            -> (Double -> Double) -- ^ Function
+            -> (Double -> Double) -- ^ Function's derivative
+            -> Root Double
+solveNewton nMax eps (lo,hi) f f'
+  | flo == 0      = Root lo
+  | fhi == 0      = Root hi
+  | flo * fhi > 0 = NotBracketed
+  | otherwise     = let d   = 0.5*(hi-lo)
+                        mid = 0.5*(lo+hi)
+                        fun = worker 0 d mid (f mid) (f' mid)
+                    in if flo < 0 then fun lo hi
+                                  else fun hi lo     
+  where
+    flo = f lo
+    fhi = f hi
+    -- Worker function
+    worker i dxOld x fx fx' a b
+      -- Convergence achieved
+      | fx == 0           = Root x  -- x is a root
+      | within 1 a b      = Root x  -- Bracket is too tight. No improvements could be made
+      | abs (a - b) < eps = Root x  --
+      | abs dx      < eps = Root x' -- Precision achieved
+      | within 0 x x'     = Root x' -- Newton step doesn't improve solution
+      -- Too many iterations
+      | i > nMax = SearchFailed
+      -- Newton step jumped out of range or step decreases too slow.
+      -- Revert to bisection.
+      -- NOTE this guard is selected if dx evaluated to NaN or ±∞.
+      | not ((a - x')*(b - x') < 0) || abs (dxOld / dx) < 2 =
+          let dx' = 0.5 * (b - a)
+              mid = 0.5 * (a + b)
+          in if fx < 0 then step dx' mid
+                       else step dx' mid
+      -- Normal newton step
+      | otherwise =
+          if fx < 0 then step dx x' 
+                    else step dx x'
+      where
+        dx = fx / fx'
+        x' = x - dx
+        step dy y
+          | fy < 0    = worker (i+1) dy  y (f y) (f' y)  y b
+          | otherwise = worker (i+1) dy  y (f y) (f' y)  a y
+          where fy  = f  y
+                fy' = f' y
+{-# INLINABLE solveNewton #-}
 
 
 -- $references
