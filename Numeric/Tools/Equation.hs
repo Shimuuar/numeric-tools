@@ -200,8 +200,8 @@ solveNewton nMax eps (lo,hi) f f'
         x' = x - dx
         -- Perform one step
         step dy y
-          | fy < 0    = worker (i+1) dy  y (f y) (f' y)  y b
-          | otherwise = worker (i+1) dy  y (f y) (f' y)  a y
+          | fy < 0    = worker (i+1) dy  y fy fy'  y b
+          | otherwise = worker (i+1) dy  y fy fy'  a y
           where fy  = f  y
                 fy' = f' y
 {-# INLINABLE solveNewton #-}
