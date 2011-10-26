@@ -4,10 +4,8 @@ import Text.Printf
 
 import Numeric.Tools.Integration
 import Numeric.Tools.Differentiation
-
--- Approximate equality
-eq :: Double -> Double -> Double -> Bool
-eq eps a b = abs (a - b) / min (abs a) (abs b) <= eps
+import Numeric.Tools.Equation
+import Numeric.ApproxEq
 
 
 ----------------------------------------------------------------
@@ -34,7 +32,7 @@ integratorTest name quad param (f,f',ranges,fname) =
         let exact = f' b - f' a
         in TestCase $ assertBool (printf "%s: poor convergence for %s (%f,%f) %g instead of %g"
                                     name fname a b appr exact)
-                                 (eq (quadPrecision param) exact appr)
+                                 (eqRelative (quadPrecision param) exact appr)
   | (a,b) <- ranges      
   ]
 
@@ -83,7 +81,7 @@ differentiationTest name diff (f,f',xs,fname) =
     in TestCase $ 
          assertBool
          (printf "%s: poor precision for %s, got %g instead of %g" name fname appr exact)
-         (eq 1e-13 appr exact)
+         (eqRelative 1e-13 appr exact)
   | (x,h) <- xs
   ]
 
@@ -106,9 +104,20 @@ testDifferentiation = concat
              , "log"
              )
 
+testEquation :: [Test]
+testEquation = 
+  [ TestCase $ assertBool "Bisection" $ ok (pi/2) (solveBisection 0 (1,2) cos)
+  , TestCase $ assertBool "Ridders"   $ ok (pi/2) $ solveRidders   0 (1,2) cos
+  , TestCase $ assertBool "Newton"    $ ok (pi/2) $ solveNewton    0 (1,2) cos sin
+  ]
+  where
+    ok exact (Root x) = within 1 exact x
+    ok _     _        = False
+
 main :: IO ()
 main = do 
   res <- runTestTT $ TestList $ concat [ testDifferentiation
                                        , testIntegration
+                                       , testEquation
                                        ]
   print res
