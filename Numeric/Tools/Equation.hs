@@ -198,6 +198,7 @@ solveNewton nMax eps (lo,hi) f f'
       where
         dx = fx / fx'
         x' = x - dx
+        -- Perform one step
         step dy y
           | fy < 0    = worker (i+1) dy  y (f y) (f' y)  y b
           | otherwise = worker (i+1) dy  y (f y) (f' y)  a y
