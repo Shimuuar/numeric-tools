@@ -1,6 +1,6 @@
 Name:           numeric-tools
 Version:        0.2.0.0
-Cabal-Version:  >= 1.6
+Cabal-Version:  >= 1.8
 License:        BSD3
 License-File:   LICENSE
 Author:         Aleksey Khudyakov <alexey.skladnoy@gmail.com>
@@ -34,6 +34,16 @@ Description:
 source-repository head
   type:     hg
   location: https://bitbucket.org/Shimuuar/numeric-tools
+
+test-suite tests
+  type:           exitcode-stdio-1.0
+  hs-source-dirs: test
+  main-is:        test.hs
+  ghc-options:    -Wall -threaded -rtsopts
+  build-depends:
+    base,
+    numeric-tools,
+    HUnit
 
 Library
   Build-Depends:   base >=3 && <5,
