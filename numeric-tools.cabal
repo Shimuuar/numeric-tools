@@ -34,6 +34,9 @@ Description:
 source-repository head
   type:     hg
   location: https://bitbucket.org/Shimuuar/numeric-tools
+source-repository head
+  type:     git
+  location: https://github.com/Shimuuar/numeric-tools
 
 test-suite tests
   type:           exitcode-stdio-1.0
@@ -44,6 +47,9 @@ test-suite tests
     base,
     numeric-tools,
     HUnit
+
+extra-source-files
+  README.markdown
 
 Library
   Build-Depends:   base >=3 && <5,
