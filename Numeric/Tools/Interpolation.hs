@@ -46,7 +46,8 @@ import Numeric.Tools.Mesh
 
 ----------------------------------------------------------------
 
--- | Interpolation for arbitraty meshes
+-- | Interpolation for arbitraty 1D meshes. Data type which perform
+--   interpolations is parametrized by mesh type.
 class Interpolation a where
   -- | Interpolate function at some point. Function should not
   --   fail outside of mesh however it may and most likely will give
