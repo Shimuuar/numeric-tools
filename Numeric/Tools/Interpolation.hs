@@ -21,6 +21,7 @@ module Numeric.Tools.Interpolation (
     -- * Type class
     Interpolation(..)
   , tabulate
+  , tabulateFun
     -- * Linear interpolation
   , LinearInterp
   , linearInterp
@@ -53,8 +54,6 @@ class Interpolation a where
   --   fail outside of mesh however it may and most likely will give
   --   nonsensical results
   at          :: (IndexVal m ~ Double, Mesh m) => a m -> Double -> Double
-  -- | Tabulate function
-  tabulateFun :: (IndexVal m ~ Double, Mesh m) => m -> (Double -> Double) -> a m
   -- | Use table of already evaluated function and mesh. Sizes of mesh
   --   and table must coincide but it's not checked. Do not use this
   --   function use 'tabulate' instead.
@@ -64,14 +63,20 @@ class Interpolation a where
   -- | Get table of function values 
   interpolationTable :: a m -> U.Vector Double
     
+-- | Tabulate function.
+tabulateFun :: (IndexVal m ~ Double, Mesh m, Interpolation a) => m -> (Double -> Double) -> a m
+tabulateFun mesh f = unsafeTabulate mesh $ U.generate (size mesh) (f . unsafeIndex mesh)
+{-# INLINE tabulateFun #-}
 
 -- | Use table of already evaluated function and mesh. Sizes of mesh
 --   and table must coincide. 
 tabulate :: (Interpolation a, IndexVal m ~ Double, Mesh m, G.Vector v Double) => m -> v Double -> a m
+{-# INLINE tabulate #-}
 tabulate mesh tbl
   | size mesh /= G.length tbl = error "Numeric.Tools.Interpolation.tabulate: size of vector and mesh do not match"
   | otherwise                 = unsafeTabulate mesh tbl
-{-# INLINE tabulate #-}
+
+
 
 ----------------------------------------------------------------
 -- Linear interpolation
@@ -98,7 +103,6 @@ instance Mesh a => Indexable (LinearInterp a) where
 
 instance Interpolation LinearInterp where
   at                      = linearInterpolation
-  tabulateFun    mesh f   = LinearInterp mesh (U.generate (size mesh) (f . unsafeIndex mesh))
   unsafeTabulate mesh tbl = LinearInterp mesh (G.convert tbl)
   interpolationMesh       = linearInterpMesh
   interpolationTable      = linearInterpTable
@@ -145,7 +149,6 @@ instance Interpolation CubicSpline where
     y  = a * ya + b * yb 
        + ((a*a*a - a) * da + (b*b*b - b) * db) * (h * h) / 6
   ------
-  tabulateFun    mesh f   = makeCubicSpline mesh (U.generate (size mesh) (f . unsafeIndex mesh))
   unsafeTabulate mesh tbl = makeCubicSpline mesh (G.convert tbl)
   interpolationMesh       = cubicSplineMesh
   interpolationTable      = cubicSplineTable
