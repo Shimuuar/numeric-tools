@@ -32,6 +32,9 @@ import Numeric.Classes.Indexing
 -- | Class for 1-dimensional meshes. Mesh is ordered set of
 -- points. Each instance must guarantee that every next point is
 -- greater that previous and there is at least 2 points in mesh.
+--
+-- Every mesh is instance of 'Indexable' and indexing should get n'th
+-- mesh node.
 class Indexable a => Mesh a where
   -- | Low bound of mesh
   meshLowerBound :: a -> Double
