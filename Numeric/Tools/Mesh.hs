@@ -16,8 +16,10 @@ module Numeric.Tools.Mesh (
     Mesh(..)
     -- ** Uniform mesh
   , UniformMesh
-  , uniformMesh
   , uniformMeshStep
+    -- *** Constructors
+  , uniformMesh
+  , uniformMeshN
   ) where
 
 import Data.Data          (Data,Typeable)
@@ -71,6 +73,16 @@ uniformMesh (a,b) n
   | b <= a    = error "Numeric.Tool.Interpolation.Mesh.uniformMesh: bad range"
   | n <  2    = error "Numeric.Tool.Interpolation.Mesh.uniformMesh: too few points"
   | otherwise = UniformMesh a ((b - a) / fromIntegral (n - 1)) n
+
+-- | Create uniform mesh
+uniformMeshN :: Double  -- ^ Lower bound
+             -> Double  -- ^ Mesh step
+             -> Int     -- ^ Number of points
+             -> UniformMesh
+uniformMeshN a dx n
+  | n  <  2   = error "Numeric.Tool.Interpolation.Mesh.uniformMeshStep: too few points"
+  | dx <= 0   = error "Numeric.Tool.Interpolation.Mesh.uniformMeshStep: nonpositive step"
+  | otherwise = UniformMesh a dx n
 
 
 instance Indexable UniformMesh where
