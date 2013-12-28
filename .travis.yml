@@ -2,10 +2,11 @@
 # test only against the last release in a major GHC version. Feel free to omit
 # lines listings versions you don't need/want testing for.
 env:
- - GHCVER=7.0.1
- - GHCVER=7.0.2
- - GHCVER=7.0.3
- - GHCVER=7.0.4
+# Disable due to superclass equality constaints
+# - GHCVER=7.0.1
+# - GHCVER=7.0.2
+# - GHCVER=7.0.3
+# - GHCVER=7.0.4
  - GHCVER=7.2.1
  - GHCVER=7.2.2
  - GHCVER=7.4.1
@@ -36,8 +37,8 @@ install:
 script:
  - cabal-1.18 configure -v2  # -v2 provides useful information for debugging
  - cabal-1.18 build
-# - cabal-1.18 test
- - cabal-1.18 check
+ - cabal-1.18 test
+# - cabal-1.18 check
 # tests that a source-distribution can be generated
  - cabal-1.18 sdist
 # The following scriptlet checks that the resulting source distribution can be built & installed
