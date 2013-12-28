@@ -42,7 +42,7 @@ test-suite tests
   type:           exitcode-stdio-1.0
   hs-source-dirs: test
   main-is:        test.hs
-  ghc-options:    -Wall -threaded -rtsopts
+  ghc-options:    -O2 -Wall -threaded -rtsopts
   build-depends:
     base,
     numeric-tools,
