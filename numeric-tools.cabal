@@ -28,8 +28,8 @@ Description:
   .
   * Improve convergence test when integral converges to
     zero. Convergence is still poor
-
-
+extra-source-files:
+  README.markdown
 
 source-repository head
   type:     hg
@@ -37,10 +37,6 @@ source-repository head
 source-repository head
   type:     git
   location: https://github.com/Shimuuar/numeric-tools
-
-
-extra-source-files:
-  README.markdown
 
 Library
   Build-Depends:
