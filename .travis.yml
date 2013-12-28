@@ -29,7 +29,7 @@ before_install:
 
 install:
  - cabal-1.18 update
- - cabal-1.18 install --only-dependencies
+ - cabal-1.18 install --enable-tests --only-dependencies
  - ghc --version
 
 # Here starts the actual work to be performed for the package under test; any

@@ -38,6 +38,28 @@ source-repository head
   type:     git
   location: https://github.com/Shimuuar/numeric-tools
 
+
+extra-source-files:
+  README.markdown
+
+Library
+  Build-Depends:
+    base       >=3 && <5,
+    ieee754    >= 0.7.3,
+    primitive,
+    vector     >= 0.7.0.1
+  Exposed-modules:
+    Control.Monad.Numeric
+    Numeric.ApproxEq
+    Numeric.Classes.Indexing
+    Numeric.Tools.Equation
+    Numeric.Tools.Differentiation
+    Numeric.Tools.Integration
+    Numeric.Tools.Interpolation
+    Numeric.Tools.Mesh
+  c-sources:       cbits/ieee.c
+  ghc-options:	   -Wall -O2
+
 test-suite tests
   type:           exitcode-stdio-1.0
   hs-source-dirs: test
@@ -47,22 +69,3 @@ test-suite tests
     base,
     numeric-tools,
     HUnit
-
-extra-source-files
-  README.markdown
-
-Library
-  Build-Depends:   base >=3 && <5,
-                   ieee754 >= 0.7.3,
-                   primitive,
-                   vector >= 0.7.0.1
-  Exposed-modules: Control.Monad.Numeric
-                   Numeric.ApproxEq
-                   Numeric.Classes.Indexing
-                   Numeric.Tools.Equation
-                   Numeric.Tools.Differentiation
-                   Numeric.Tools.Integration
-                   Numeric.Tools.Interpolation
-                   Numeric.Tools.Mesh
-  c-sources:       cbits/ieee.c
-  ghc-options:	   -Wall -O2
