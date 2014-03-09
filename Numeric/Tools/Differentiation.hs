@@ -30,6 +30,7 @@ import Data.Data          (Data,Typeable)
 import qualified Data.Vector.Unboxed.Mutable as M
 import Foreign
 import Foreign.C
+import System.IO.Unsafe (unsafePerformIO)
 
 import Numeric.IEEE (infinity, nan)
 
