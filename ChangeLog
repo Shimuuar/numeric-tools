@@ -1,3 +1,7 @@
+Changes in 0.2.0.1
+  * Support for GHC 7.8
+
+
 Changes in 0.2.0.0
   * Equation solvers now use custom return type.
 
